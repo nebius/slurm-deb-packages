@@ -3,14 +3,18 @@ name: Build Docker and Create Release
 on:
   workflow_dispatch:
     inputs:
-      version:
+      slurm_version:
         description: 'Slurm version'
         required: true
         default: '23.11.8'
+      pmix_version:
+        description: 'Pmix version'
+        required: true
+        default: '5.0.2'
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
 
     steps:
       - name: Checkout repository
@@ -28,42 +32,35 @@ jobs:
             ${{ runner.os }}-buildx-
 
       - name: Build Docker image
-        run: docker build --build-arg SLURM_VERSION=${{ github.event.inputs.version }} -t slurm_deb_builder .
+        run: docker build --build-arg SLURM_VERSION=${{ github.event.inputs.slurm_version }} --build-arg PMIX_VERSION=${{ github.event.inputs.pmix_version }} -t slurm_deb_packages .
 
       - name: Create output directory
         run: mkdir -p output
 
       - name: Run Docker container and copy files
         run: |
-          container_id=$(docker create my-app:latest)
-          docker cp $container_id:/usr/src/slurm-smd*.deb ./output/
-          docker cp $container_id:/usr/src/nccl/build/pkg/deb/*.deb ./output/
-          ls -lah ./output/
+          container_id=$(docker create slurm_deb_packages)
+          docker start $container_id
+          docker cp $container_id:/usr/src/debs/ ./output/
           docker rm $container_id
 
-#      - name: Upload Release Asset
-#        uses: actions/upload-artifact@v3
+#      - name: Upload DEB packages as artifacts
+#        uses: actions/upload-artifact@v4
 #        with:
-#          name: artifact
-#          path: ./output/artifact
-#
-#      - name: Create GitHub Release
-#        id: create_release
-#        uses: actions/create-release@v1
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          tag_name: v${{ github.event.inputs.version }}
-#          release_name: Release ${{ github.event.inputs.version }}
-#          draft: false
-#          prerelease: false
-#
-#      - name: Upload Release Assets
-#        uses: actions/upload-release-asset@v1
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#        with:
-#          upload_url: ${{ steps.create_release.outputs.upload_url }}
-#          asset_path: ./output/artifact
-#          asset_name: artifact
-#          asset_content_type: application/octet-stream
+#          name: slurm-deb-packages
+#          path: ./output/debs/*.deb
+
+      - name: Create GitHub Release and Upload DEB packages
+        uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ github.event.inputs.slurm_version }}
+          name: Slurm v${{ github.event.inputs.slurm_version }}
+          release_name: Slurm-${{ github.event.inputs.slurm_version }}
+          draft: false
+          prerelease: false
+          files: output/debs/*.deb
+
+      - name: Cleanup
+        run: rm -rf output/*.deb

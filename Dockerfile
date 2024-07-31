@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.2.2-cudnn8-devel-ubuntu20.04 as slurm
+FROM nvidia/cuda:12.2.2-cudnn8-devel-ubuntu20.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -61,23 +61,23 @@ RUN cd /usr/src/slurm-${SLURM_VERSION} && \
 ################################################################
 # RESULT
 ################################################################
-# /usr/src/slurm-smd-client_23.11.6-1_amd64.deb
-# /usr/src/slurm-smd-dev_23.11.6-1_amd64.deb
-# /usr/src/slurm-smd-doc_23.11.6-1_all.deb
-# /usr/src/slurm-smd-libnss-slurm_23.11.6-1_amd64.deb
-# /usr/src/slurm-smd-libpam-slurm-adopt_23.11.6-1_amd64.deb
-# /usr/src/slurm-smd-libpmi0_23.11.6-1_amd64.deb
-# /usr/src/slurm-smd-libpmi2-0_23.11.6-1_amd64.deb
-# /usr/src/slurm-smd-libslurm-perl_23.11.6-1_amd64.deb
-# /usr/src/slurm-smd-openlava_23.11.6-1_all.deb
-# /usr/src/slurm-smd-sackd_23.11.6-1_amd64.deb
-# /usr/src/slurm-smd-slurmctld_23.11.6-1_amd64.deb
-# /usr/src/slurm-smd-slurmd_23.11.6-1_amd64.deb
-# /usr/src/slurm-smd-slurmdbd_23.11.6-1_amd64.deb
-# /usr/src/slurm-smd-slurmrestd_23.11.6-1_amd64.deb
-# /usr/src/slurm-smd-sview_23.11.6-1_amd64.deb
-# /usr/src/slurm-smd-torque_23.11.6-1_all.deb
-# /usr/src/slurm-smd_23.11.6-1_amd64.deb
+# /usr/src/slurm-smd-client_23.11.8-1_amd64.deb
+# /usr/src/slurm-smd-dev_23.11.8-1_amd64.deb
+# /usr/src/slurm-smd-doc_23.11.8-1_all.deb
+# /usr/src/slurm-smd-libnss-slurm_23.11.8-1_amd64.deb
+# /usr/src/slurm-smd-libpam-slurm-adopt_23.11.8-1_amd64.deb
+# /usr/src/slurm-smd-libpmi0_23.11.8-1_amd64.deb
+# /usr/src/slurm-smd-libpmi2-0_23.11.8-1_amd64.deb
+# /usr/src/slurm-smd-libslurm-perl_23.11.8-1_amd64.deb
+# /usr/src/slurm-smd-openlava_23.11.8-1_all.deb
+# /usr/src/slurm-smd-sackd_23.11.8-1_amd64.deb
+# /usr/src/slurm-smd-slurmctld_23.11.8-1_amd64.deb
+# /usr/src/slurm-smd-slurmd_23.11.8-1_amd64.deb
+# /usr/src/slurm-smd-slurmdbd_23.11.8-1_amd64.deb
+# /usr/src/slurm-smd-slurmrestd_23.11.8-1_amd64.deb
+# /usr/src/slurm-smd-sview_23.11.8-1_amd64.deb
+# /usr/src/slurm-smd-torque_23.11.8-1_all.deb
+# /usr/src/slurm-smd_23.11.8-1_amd64.deb
 ################################################################
 
 RUN cd /usr/src && \
@@ -91,3 +91,8 @@ RUN cd /usr/src && \
 # /usr/src/nccl/build/pkg/deb/libnccl-dev_2.22.3-1+cuda12.2_amd64.deb
 # /usr/src/nccl/build/pkg/deb/libnccl2_2.22.3-1+cuda12.2_amd64.deb
 #####################################################################
+
+RUN mkdir /usr/src/debs && \
+    mv /usr/src/*.deb /usr/src/debs/ && \
+    mv /usr/src/nccl/build/pkg/deb/*.deb /usr/src/debs/ && \
+    ls -la /usr/src/debs/
