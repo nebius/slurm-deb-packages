@@ -23,14 +23,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      - name: Cache Docker layers
-        uses: actions/cache@v2
-        with:
-          path: /tmp/.buildx-cache
-          key: ${{ runner.os }}-buildx-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-buildx-
-
       - name: Build Docker image
         run: docker build --build-arg SLURM_VERSION=${{ github.event.inputs.slurm_version }} --build-arg PMIX_VERSION=${{ github.event.inputs.pmix_version }} -t slurm_deb_packages .
 
