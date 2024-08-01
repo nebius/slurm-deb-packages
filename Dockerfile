@@ -92,7 +92,32 @@ RUN cd /usr/src && \
 # /usr/src/nccl/build/pkg/deb/libnccl2_2.22.3-1+cuda12.2_amd64.deb
 #####################################################################
 
+RUN cd /usr/src && \
+    git clone https://github.com/NVIDIA/nccl-tests.git && \
+    cd nccl-tests && \
+    make
+
+################################################################
+# RESULT
+################################################################
+# /usr/src/nccl-tests/build/all_gather_perf
+# /usr/src/nccl-tests/build/all_reduce_perf
+# /usr/src/nccl-tests/build/alltoall_perf
+# /usr/src/nccl-tests/build/broadcast_perf
+# /usr/src/nccl-tests/build/gather_perf
+# /usr/src/nccl-tests/build/hypercube_perf
+# /usr/src/nccl-tests/build/reduce_perf
+# /usr/src/nccl-tests/build/reduce_scatter_perf
+# /usr/src/nccl-tests/build/scatter_perf
+# /usr/src/nccl-tests/build/sendrecv_perf
+################################################################
+
+# Move all deb files in one directory
 RUN mkdir /usr/src/debs && \
     mv /usr/src/*.deb /usr/src/debs/ && \
     mv /usr/src/nccl/build/pkg/deb/*.deb /usr/src/debs/ && \
     ls -la /usr/src/debs/
+
+# Create tar.gz archive with NCCL-tests binaries
+RUN cd /usr/src/nccl-tests/build && \
+    tar -czvf nccl-tests-perf.tar.gz *_perf
