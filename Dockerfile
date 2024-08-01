@@ -34,7 +34,7 @@ RUN apt-get update && \
         zlib1g-dev
 
 # Download Slurm
-ARG SLURM_VERSION=23.11.6
+ARG SLURM_VERSION=24.05.2
 RUN cd /usr/src && \
     wget https://download.schedmd.com/slurm/slurm-${SLURM_VERSION}.tar.bz2 && \
     tar -xvf slurm-${SLURM_VERSION}.tar.bz2 && \
@@ -42,7 +42,7 @@ RUN cd /usr/src && \
 
 # Install PMIx in order to build Slurm with PMIx support
 # Slurm deb packages will be already compiled with PMIx support even without it, but only with v3, while we use v5
-ARG PMIX_VERSION=5.0.2
+ARG PMIX_VERSION=5.0.3
 RUN cd /usr/src && \
     wget https://github.com/openpmix/openpmix/releases/download/v${PMIX_VERSION}/pmix-${PMIX_VERSION}.tar.gz && \
     tar -xzvf pmix-${PMIX_VERSION}.tar.gz && \
@@ -61,23 +61,23 @@ RUN cd /usr/src/slurm-${SLURM_VERSION} && \
 ################################################################
 # RESULT
 ################################################################
-# /usr/src/slurm-smd-client_23.11.8-1_amd64.deb
-# /usr/src/slurm-smd-dev_23.11.8-1_amd64.deb
-# /usr/src/slurm-smd-doc_23.11.8-1_all.deb
-# /usr/src/slurm-smd-libnss-slurm_23.11.8-1_amd64.deb
-# /usr/src/slurm-smd-libpam-slurm-adopt_23.11.8-1_amd64.deb
-# /usr/src/slurm-smd-libpmi0_23.11.8-1_amd64.deb
-# /usr/src/slurm-smd-libpmi2-0_23.11.8-1_amd64.deb
-# /usr/src/slurm-smd-libslurm-perl_23.11.8-1_amd64.deb
-# /usr/src/slurm-smd-openlava_23.11.8-1_all.deb
-# /usr/src/slurm-smd-sackd_23.11.8-1_amd64.deb
-# /usr/src/slurm-smd-slurmctld_23.11.8-1_amd64.deb
-# /usr/src/slurm-smd-slurmd_23.11.8-1_amd64.deb
-# /usr/src/slurm-smd-slurmdbd_23.11.8-1_amd64.deb
-# /usr/src/slurm-smd-slurmrestd_23.11.8-1_amd64.deb
-# /usr/src/slurm-smd-sview_23.11.8-1_amd64.deb
-# /usr/src/slurm-smd-torque_23.11.8-1_all.deb
-# /usr/src/slurm-smd_23.11.8-1_amd64.deb
+# /usr/src/slurm-smd-client_24.05.02-1_amd64.deb
+# /usr/src/slurm-smd-dev_24.05.02-1_amd64.deb
+# /usr/src/slurm-smd-doc_24.05.02-1_all.deb
+# /usr/src/slurm-smd-libnss-slurm_24.05.02-1_amd64.deb
+# /usr/src/slurm-smd-libpam-slurm-adopt_24.05.02-1_amd64.deb
+# /usr/src/slurm-smd-libpmi0_24.05.02-1_amd64.deb
+# /usr/src/slurm-smd-libpmi2-0_24.05.02-1_amd64.deb
+# /usr/src/slurm-smd-libslurm-perl_24.05.02-1_amd64.deb
+# /usr/src/slurm-smd-openlava_24.05.02-1_all.deb
+# /usr/src/slurm-smd-sackd_24.05.02-1_amd64.deb
+# /usr/src/slurm-smd-slurmctld_24.05.02-1_amd64.deb
+# /usr/src/slurm-smd-slurmd_24.05.02-1_amd64.deb
+# /usr/src/slurm-smd-slurmdbd_24.05.02-1_amd64.deb
+# /usr/src/slurm-smd-slurmrestd_24.05.02-1_amd64.deb
+# /usr/src/slurm-smd-sview_24.05.02-1_amd64.deb
+# /usr/src/slurm-smd-torque_24.05.02-1_all.deb
+# /usr/src/slurm-smd_24.05.02-1_amd64.deb
 ################################################################
 
 RUN cd /usr/src && \
