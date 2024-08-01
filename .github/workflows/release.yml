@@ -26,14 +26,15 @@ jobs:
       - name: Build Docker image
         run: docker build --no-cache --build-arg SLURM_VERSION=${{ github.event.inputs.slurm_version }} --build-arg PMIX_VERSION=${{ github.event.inputs.pmix_version }} -t slurm_deb_packages .
 
-      - name: Create output directory
-        run: mkdir -p output
+      - name: Create slurm_build_output directory
+        run: mkdir -p slurm_build_output
 
       - name: Run Docker container and copy files
         run: |
           container_id=$(docker create slurm_deb_packages)
           docker start $container_id
-          docker cp $container_id:/usr/src/debs/ ./output/
+          docker cp $container_id:/usr/src/debs/ ./slurm_build_output/
+          docker cp $container_id:/usr/src/nccl-tests/build/nccl-tests-perf.tar.gz ./slurm_build_output/
           docker rm $container_id
 
       - name: Create GitHub Release and Upload DEB packages
@@ -43,11 +44,14 @@ jobs:
         with:
           tag_name: v${{ github.event.inputs.slurm_version }}
           name: Slurm v${{ github.event.inputs.slurm_version }}
-          body: "Release for Slurm v${{ github.event.inputs.slurm_version }} with PMIx v${{ github.event.inputs.pmix_version }} and libnccl"
+          body: "Release for Slurm v${{ github.event.inputs.slurm_version }} with OpenPMIx v${{ github.event.inputs.pmix_version }}, libnccl packages and NCCL-test binaries"
           release_name: Slurm-${{ github.event.inputs.slurm_version }}
           draft: false
           prerelease: false
-          files: output/debs/*.deb
+          files: |
+            slurm_build_output/debs/*.deb
+            slurm_build_output/nccl-tests-perf.tar.gz
+            
 
       - name: Cleanup
-        run: rm -rf output/*.deb
+        run: rm -rf slurm_build_output
