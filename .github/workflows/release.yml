@@ -43,7 +43,7 @@ jobs:
         with:
           tag_name: v${{ github.event.inputs.slurm_version }}
           name: Slurm v${{ github.event.inputs.slurm_version }}
-          body: "Release for Slurm v${{ github.event.inputs.slurm_version }} with PMIx v${{ github.event.inputs.pmix_version }} and libnccl"
+          body: "Release for Slurm v${{ github.event.inputs.slurm_version }} with OpenPMIx v${{ github.event.inputs.pmix_version }} and libnccl"
           release_name: Slurm-${{ github.event.inputs.slurm_version }}
           draft: false
           prerelease: false
