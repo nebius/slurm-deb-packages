@@ -24,7 +24,7 @@ jobs:
         uses: docker/setup-buildx-action@v1
 
       - name: Build Docker image
-        run: docker build --build-arg SLURM_VERSION=${{ github.event.inputs.slurm_version }} --build-arg PMIX_VERSION=${{ github.event.inputs.pmix_version }} -t slurm_deb_packages .
+        run: docker build --no-cache --build-arg SLURM_VERSION=${{ github.event.inputs.slurm_version }} --build-arg PMIX_VERSION=${{ github.event.inputs.pmix_version }} -t slurm_deb_packages .
 
       - name: Create output directory
         run: mkdir -p output
@@ -43,6 +43,7 @@ jobs:
         with:
           tag_name: v${{ github.event.inputs.slurm_version }}
           name: Slurm v${{ github.event.inputs.slurm_version }}
+          body: "Release for Slurm v${{ github.event.inputs.slurm_version }} with PMIx v${{ github.event.inputs.pmix_version }} and libnccl"
           release_name: Slurm-${{ github.event.inputs.slurm_version }}
           draft: false
           prerelease: false
