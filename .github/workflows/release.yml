@@ -50,7 +50,7 @@ jobs:
           prerelease: false
           files: |
             slurm_build_output/debs/*.deb
-            /usr/src/nccl-tests/build/nccl-tests-perf.tar.gz
+            slurm_build_output/nccl-tests-perf.tar.gz
             
 
       - name: Cleanup
