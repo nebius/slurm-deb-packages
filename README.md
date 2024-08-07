@@ -18,6 +18,6 @@ The build process includes the following components:
 - **NVIDIA NCCL**: NVIDIA's collective communication library optimized for multi-GPU and multi-node systems.
 - **NCCL tests**: A suite of tests provided by NVIDIA to validate and benchmark the performance of the NCCL library across different hardware configurations.
 
-## Built packages
+## Download packages
 
 To explore and download available packages, go to the [Releases page](https://github.com/nebius/slurm-deb-packages/releases) in this GitHub repository.
