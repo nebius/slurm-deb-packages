@@ -1,6 +1,6 @@
 # Slurm Debian Package Builder
 
-This repository automates the process of building Debian packages for [Slurm](https://www.schedmd.com/download-slurm/) and [NVIDIA NCCL](https://github.com/NVIDIA/nccl). Additionally, it builds binary files for running [NCCL tests](https://github.com/NVIDIA/nccl-tests). The built packages and binaries are published as releases in this GitHub repository.
+This repository automates the process of building Debian packages for [Slurm](https://www.schedmd.com/slurm/why-slurm/) and [NVIDIA NCCL](https://github.com/NVIDIA/nccl). It also builds binary files for running [NCCL tests](https://github.com/NVIDIA/nccl-tests).
 
 Slurm is built using default options, with support for some additional libraries, such as [OpenPMIx (v5)](https://github.com/openpmix/openpmix).
 
@@ -14,6 +14,10 @@ Additionally, binary files for running NCCL tests are built to verify and benchm
 
 The build process includes the following components:
 - **Slurm**: A workload manager that facilitates resource management and scheduling in HPC environments.
-- **OpenPMIx**: The Open Process Management Interface for Exascale, providing a set of interfaces to manage the execution of applications at large scales.
+- **OpenPMIx**: The Open Process Management Interface for Exascale, which provides a set of interfaces for managing the execution of applications at large scales.
 - **NVIDIA NCCL**: NVIDIA's collective communication library optimized for multi-GPU and multi-node systems.
-- **NCCL Tests**: A suite of tests provided by NVIDIA to validate and benchmark the performance of the NCCL library across different hardware configurations.
+- **NCCL tests**: A suite of tests provided by NVIDIA to validate and benchmark the performance of the NCCL library across different hardware configurations.
+
+## Download packages
+
+To explore and download available packages, go to the [Releases page](https://github.com/nebius/slurm-deb-packages/releases) in this GitHub repository.
