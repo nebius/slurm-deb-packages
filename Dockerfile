@@ -1,4 +1,9 @@
-FROM nvidia/cuda:12.2.2-cudnn8-devel-ubuntu20.04
+ARG BASE_IMAGE=nvidia/cuda:12.2.2-cudnn8-devel-ubuntu20.04
+
+FROM $BASE_IMAGE
+
+ARG SLURM_VERSION=24.05.2
+ARG PMIX_VERSION=5.0.3
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -30,11 +35,10 @@ RUN apt-get update && \
         jq \
         squashfs-tools \
         zstd \
-        zlibc \
+        zlib1g \
         zlib1g-dev
 
 # Download Slurm
-ARG SLURM_VERSION=24.05.2
 RUN cd /usr/src && \
     wget https://download.schedmd.com/slurm/slurm-${SLURM_VERSION}.tar.bz2 && \
     tar -xvf slurm-${SLURM_VERSION}.tar.bz2 && \
@@ -42,7 +46,6 @@ RUN cd /usr/src && \
 
 # Install PMIx in order to build Slurm with PMIx support
 # Slurm deb packages will be already compiled with PMIx support even without it, but only with v3, while we use v5
-ARG PMIX_VERSION=5.0.3
 RUN cd /usr/src && \
     wget https://github.com/openpmix/openpmix/releases/download/v${PMIX_VERSION}/pmix-${PMIX_VERSION}.tar.gz && \
     tar -xzvf pmix-${PMIX_VERSION}.tar.gz && \
