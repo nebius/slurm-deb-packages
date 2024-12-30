@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         slurm:
-          - version: 24.05.4
+          - version: 24.05.5
         image:
           - context: .
             push: false
