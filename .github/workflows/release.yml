@@ -23,8 +23,7 @@ jobs:
             platforms: linux/amd64
             load: true
             ubuntu_version: jammy
-            pmix_version: 5.0.3
-            cuda_version: 12.2.2
+            cuda_version: 12.4.1
             build_args:
               BASE_IMAGE=nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
 
@@ -66,7 +65,7 @@ jobs:
           docker rm $container_id
 
       - name: Create GitHub Release and Upload DEB packages
-        uses: softprops/action-gh-release@7b4da11513bf3f43f9999e90eabced41ab8bb048 # v2.2.0
+        uses: softprops/action-gh-release@01570a1f39cb168c169c802c3bceb9e93fb10974 # v2.1.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
