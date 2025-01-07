@@ -1,9 +1,11 @@
-ARG BASE_IMAGE=nvidia/cuda:12.2.2-cudnn8-devel-ubuntu20.04
+ARG BASE_IMAGE=nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
 
 FROM $BASE_IMAGE
 
-ARG SLURM_VERSION=24.05.2
-ARG PMIX_VERSION=5.0.3
+ARG SLURM_VERSION=24.05.5
+ARG OPENMPI_VERSION=4.1.7a1
+ARG OPENMPI_SUBVERSION=1.2310055
+ARG OFED_VERSION=23.10-2.1.3.1
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -44,17 +46,15 @@ RUN cd /usr/src && \
     tar -xvf slurm-${SLURM_VERSION}.tar.bz2 && \
     rm -rf slurm-${SLURM_VERSION}.tar.bz2
 
-# Install PMIx in order to build Slurm with PMIx support
-# Slurm deb packages will be already compiled with PMIx support even without it, but only with v3, while we use v5
-RUN cd /usr/src && \
-    wget https://github.com/openpmix/openpmix/releases/download/v${PMIX_VERSION}/pmix-${PMIX_VERSION}.tar.gz && \
-    tar -xzvf pmix-${PMIX_VERSION}.tar.gz && \
-    rm -rf pmix-${PMIX_VERSION}.tar.gz && \
-    cd /usr/src/pmix-${PMIX_VERSION} && \
-    ./configure && \
-    make -j$(nproc) && \
-    make install
+# Install Openmpi
+RUN cd /etc/apt/sources.list.d && \
+    wget https://linux.mellanox.com/public/repo/mlnx_ofed/${OFED_VERSION}/$(. /etc/os-release; echo $ID$VERSION_ID)/mellanox_mlnx_ofed.list && \
+    wget -qO - https://www.mellanox.com/downloads/ofed/RPM-GPG-KEY-Mellanox | apt-key add - && \
+    apt update && \
+    apt install openmpi=${OPENMPI_VERSION}-${OPENMPI_SUBVERSION}
 
+ENV LD_LIBRARY_PATH=/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
+ENV PATH=$PATH:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/bin
 
 # Build deb packages for Slurm
 RUN cd /usr/src/slurm-${SLURM_VERSION} && \
@@ -84,18 +84,6 @@ RUN cd /usr/src/slurm-${SLURM_VERSION} && \
 ################################################################
 
 RUN cd /usr/src && \
-    git clone https://github.com/NVIDIA/nccl.git && \
-    cd nccl && \
-    make -j pkg.debian.build
-
-#####################################################################
-# RESULT
-#####################################################################
-# /usr/src/nccl/build/pkg/deb/libnccl-dev_2.22.3-1+cuda12.2_amd64.deb
-# /usr/src/nccl/build/pkg/deb/libnccl2_2.22.3-1+cuda12.2_amd64.deb
-#####################################################################
-
-RUN cd /usr/src && \
     git clone https://github.com/NVIDIA/nccl-tests.git && \
     cd nccl-tests && \
     make
@@ -115,11 +103,9 @@ RUN cd /usr/src && \
 # /usr/src/nccl-tests/build/sendrecv_perf
 ################################################################
 
-# Move all deb files in one directory
+# Move deb files
 RUN mkdir /usr/src/debs && \
-    mv /usr/src/*.deb /usr/src/debs/ && \
-    mv /usr/src/nccl/build/pkg/deb/*.deb /usr/src/debs/ && \
-    ls -la /usr/src/debs/
+    mv /usr/src/*.deb /usr/src/debs/
 
 # Create tar.gz archive with NCCL-tests binaries
 RUN cd /usr/src/nccl-tests/build && \
