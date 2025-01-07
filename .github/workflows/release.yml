@@ -16,17 +16,8 @@ jobs:
       fail-fast: false
       matrix:
         slurm:
-          - version: 24.05.4
+          - version: 24.05.5
         image:
-          - context: .
-            push: false
-            platforms: linux/amd64
-            load: true
-            ubuntu_version: focal
-            pmix_version: 5.0.2
-            cuda_version: 12.2.2
-            build_args:
-              BASE_IMAGE=nvidia/cuda:12.2.2-cudnn8-devel-ubuntu20.04
           - context: .
             push: false
             platforms: linux/amd64
@@ -35,7 +26,7 @@ jobs:
             pmix_version: 5.0.3
             cuda_version: 12.2.2
             build_args:
-              BASE_IMAGE=nvidia/cuda:12.2.2-cudnn8-devel-ubuntu22.04
+              BASE_IMAGE=nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
 
     steps:
       - name: Harden Runner
@@ -60,7 +51,6 @@ jobs:
           build-args: |
             ${{ matrix.image.build_args }}
             SLURM_VERSION=${{ matrix.slurm.version }}
-            PMIX_VERSION=${{ matrix.image.pmix_version }}
           cache-from: type=local,src=.buildx-cache
           cache-to: type=local,dest=.buildx-cache,mode=max
 
@@ -82,7 +72,7 @@ jobs:
         with:
           tag_name: ${{ matrix.image.cuda_version }}-${{ matrix.image.ubuntu_version }}-slurm${{ matrix.slurm.version }}
           name: Cuda ${{ matrix.image.cuda_version }}, Ubuntu ${{ matrix.image.ubuntu_version }}, Slurm ${{ matrix.slurm.version }}
-          body: "Release based on Ubuntu ${{ matrix.image.ubuntu_version }} for Slurm ${{ matrix.slurm.version }} with cuda ${{ matrix.image.cuda_version }}, PMIx ${{ matrix.image.pmix_version }} and libnccl"
+          body: "Release based on Ubuntu ${{ matrix.image.ubuntu_version }} for Slurm ${{ matrix.slurm.version }} with cuda ${{ matrix.image.cuda_version }}, and nccl-tests"
           draft: false
           prerelease: false
           files: |
