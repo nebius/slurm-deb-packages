@@ -38,7 +38,9 @@ RUN apt-get update && \
         squashfs-tools \
         zstd \
         zlib1g \
-        zlib1g-dev
+        zlib1g-dev \
+        libpmix2 \
+        libpmix-dev
 
 # Download Slurm
 RUN cd /usr/src && \
@@ -53,11 +55,12 @@ RUN cd /etc/apt/sources.list.d && \
     apt update && \
     apt install openmpi=${OPENMPI_VERSION}-${OPENMPI_SUBVERSION}
 
-ENV LD_LIBRARY_PATH=/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
+ENV LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/targets/x86_64-linux/lib:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
 ENV PATH=$PATH:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/bin
 
 # Build deb packages for Slurm
 RUN cd /usr/src/slurm-${SLURM_VERSION} && \
+    sed -i 's/--with-pmix\b/--with-pmix=\/usr\/lib\/x86_64-linux-gnu\/pmix2/' debian/rules && \
     mk-build-deps -i debian/control -t "apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y" && \
     debuild -b -uc -us
 
