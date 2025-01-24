@@ -121,16 +121,15 @@ RUN curl -fSsL -o /tmp/enroot_${ENROOT_VERSION}-1_amd64.deb https://github.com/N
 
 # Download and build pyxis deb
 RUN cd /usr/src && \
-    dpkg -i ../slurm-smd_24.05.5-1_amd64.deb && \
-    dpkg -i ../slurm-smd-dev_24.05.5-1_amd64.deb && \
+    dpkg -i /usr/src/slurm-smd_${SLURM_VERSION}-1_amd64.deb && \
+    dpkg -i /usr/src/slurm-smd-dev_${SLURM_VERSION}-1_amd64.deb && \
     wget https://github.com/NVIDIA/pyxis/archive/refs/tags/v"$PYXIS_VERSION".tar.gz && \
     tar -xzvf v"$PYXIS_VERSION".tar.gz && \
     rm v"$PYXIS_VERSION".tar.gz && \
     cd pyxis-"$PYXIS_VERSION" && \
     sed -i 's|dh_auto_install -- prefix= libdir=/usr/lib/$(DEB_HOST_MULTIARCH) datarootdir=/usr/share|dh_auto_install -- prefix=/usr libdir=/usr/lib/x86_64-linux-gnu datarootdir=/usr/share|' debian/rules && \
     make orig && \
-    make deb \
-    make install prefix=/usr libdir=/usr/lib/x86_64-linux-gnu
+    make deb
 
 ################################################################
 # RESULT
