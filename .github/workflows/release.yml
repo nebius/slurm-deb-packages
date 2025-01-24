@@ -71,7 +71,7 @@ jobs:
         with:
           tag_name: ${{ matrix.image.cuda_version }}-${{ matrix.image.ubuntu_version }}-slurm${{ matrix.slurm.version }}
           name: Cuda ${{ matrix.image.cuda_version }}, Ubuntu ${{ matrix.image.ubuntu_version }}, Slurm ${{ matrix.slurm.version }}
-          body: "Release based on Ubuntu ${{ matrix.image.ubuntu_version }} for Slurm ${{ matrix.slurm.version }} with cuda ${{ matrix.image.cuda_version }}, and nccl-tests"
+          body: "Release based on Ubuntu ${{ matrix.image.ubuntu_version }} for Slurm ${{ matrix.slurm.version }} with cuda ${{ matrix.image.cuda_version }}, nccl-tests and pyxis"
           draft: false
           prerelease: false
           files: |

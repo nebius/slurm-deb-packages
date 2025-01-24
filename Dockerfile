@@ -6,6 +6,8 @@ ARG SLURM_VERSION=24.05.5
 ARG OPENMPI_VERSION=4.1.7a1
 ARG OPENMPI_SUBVERSION=1.2310055
 ARG OFED_VERSION=23.10-2.1.3.1
+ARG ENROOT_VERSION=3.5.0
+ARG PYXIS_VERSION=0.20.0
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -18,6 +20,7 @@ RUN apt-get update && \
         debhelper \
         fakeroot \
         wget \
+        curl \
         equivs \
         autoconf \
         pkg-config \
@@ -104,6 +107,36 @@ RUN cd /usr/src && \
 # /usr/src/nccl-tests/build/reduce_scatter_perf
 # /usr/src/nccl-tests/build/scatter_perf
 # /usr/src/nccl-tests/build/sendrecv_perf
+################################################################
+
+# Install enroot (required for pyxis)
+RUN curl -fSsL -o /tmp/enroot_${ENROOT_VERSION}-1_amd64.deb https://github.com/NVIDIA/enroot/releases/download/v${ENROOT_VERSION}/enroot_${ENROOT_VERSION}-1_amd64.deb && \
+    curl -fSsL -o /tmp/enroot+caps_${ENROOT_VERSION}-1_amd64.deb https://github.com/NVIDIA/enroot/releases/download/v${ENROOT_VERSION}/enroot+caps_${ENROOT_VERSION}-1_amd64.deb && \
+    apt install -y /tmp/*.deb && rm -rf /tmp/*.deb && \
+    mkdir -m 777 /usr/share/enroot/enroot-data && \
+    mkdir -m 755 /run/enroot && \
+    setcap cap_sys_admin+pe /usr/bin/enroot-mksquashovlfs && \
+    setcap cap_sys_admin,cap_mknod+pe /usr/bin/enroot-aufs2ovlfs
+
+
+# Download and build pyxis deb
+RUN cd /usr/src && \
+    dpkg -i ../slurm-smd_24.05.5-1_amd64.deb && \
+    dpkg -i ../slurm-smd-dev_24.05.5-1_amd64.deb && \
+    wget https://github.com/NVIDIA/pyxis/archive/refs/tags/v"$PYXIS_VERSION".tar.gz && \
+    tar -xzvf v"$PYXIS_VERSION".tar.gz && \
+    rm v"$PYXIS_VERSION".tar.gz && \
+    cd pyxis-"$PYXIS_VERSION" && \
+    sed -i 's|dh_auto_install -- prefix= libdir=/usr/lib/$(DEB_HOST_MULTIARCH) datarootdir=/usr/share|dh_auto_install -- prefix=/usr libdir=/usr/lib/x86_64-linux-gnu datarootdir=/usr/share|' debian/rules && \
+    make orig && \
+    make deb \
+    make install prefix=/usr libdir=/usr/lib/x86_64-linux-gnu
+
+################################################################
+# RESULT
+################################################################
+# ls -la ../nvslurm-plugin-pyxis*.deb
+# /usr/src/nvslurm-plugin-pyxis_0.20.0-1_amd64.deb
 ################################################################
 
 # Move deb files
