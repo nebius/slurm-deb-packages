@@ -7,7 +7,7 @@ ARG OPENMPI_VERSION=4.1.7a1
 ARG OPENMPI_SUBVERSION=1.2310055
 ARG OFED_VERSION=23.10-2.1.3.1
 ARG ENROOT_VERSION=3.5.0
-ARG PYXIS_VERSION=0.20.0
+ARG PYXIS_VERSION=0.21.0
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -120,10 +120,11 @@ RUN curl -fSsL -o /tmp/enroot_${ENROOT_VERSION}-1_amd64.deb https://github.com/N
 
 
 # Download and build pyxis deb
+# TODO @itechdima: keep watching this PR https://github.com/NVIDIA/pyxis/pull/155
 RUN cd /usr/src && \
     dpkg -i /usr/src/slurm-smd_${SLURM_VERSION}-1_amd64.deb && \
     dpkg -i /usr/src/slurm-smd-dev_${SLURM_VERSION}-1_amd64.deb && \
-    wget https://github.com/NVIDIA/pyxis/archive/refs/tags/v"$PYXIS_VERSION".tar.gz && \
+    wget https://github.com/itechdima/pyxis/archive/refs/tags/v"$PYXIS_VERSION".tar.gz && \
     tar -xzvf v"$PYXIS_VERSION".tar.gz && \
     rm v"$PYXIS_VERSION".tar.gz && \
     cd pyxis-"$PYXIS_VERSION" && \
