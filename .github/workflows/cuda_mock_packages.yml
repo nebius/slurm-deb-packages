@@ -1,4 +1,4 @@
-name: Build Docker and Create Release
+name: Build mock packages
 
 on:
   workflow_dispatch:
