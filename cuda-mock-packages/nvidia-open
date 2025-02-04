@@ -3,4 +3,10 @@ Priority: optional
 Package: nvidia-open
 Version: 9999.9999.9999
 Architecture: amd64
-Description: nvidia-open mock package (meta)
+Description: Nvidia-open mock package (meta)
+  NVIDIA driver packages are required by various meta-packages, such as CUDA.
+  However, in containerized environments, drivers are not installed via traditional packages but through tools like `nvidia-container-toolkit` or the k8s GPU Operator.
+
+  These empty (mock) packages trick `apt/dpkg` into thinking that the driver is installed via standard packages.
+  As a result, other packages that depend on the driver as a dependency can be installed and used without issues.
+
