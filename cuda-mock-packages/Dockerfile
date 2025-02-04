@@ -12,8 +12,8 @@ COPY cuda-mock-packages/cuda-drivers /mocks
 COPY cuda-mock-packages/nvidia-open /mocks
 
 WORKDIR mocks
-RUN equivs-build /tmp/cuda-drivers
-RUN equivs-build /tmp/nvidia-open
+RUN equivs-build cuda-drivers
+RUN equivs-build nvidia-open
 
 ################################################################
 # RESULT
