@@ -1,0 +1,6 @@
+Section: multiverse/devel
+Priority: optional
+Package: cuda-drivers
+Version: 9999.9999.9999
+Architecture: amd64
+Description: Cuda-drivers mock package (meta)

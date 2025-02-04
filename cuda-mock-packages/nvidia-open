@@ -1,0 +1,6 @@
+Section: multiverse/devel
+Priority: optional
+Package: nvidia-open
+Version: 9999.9999.9999
+Architecture: amd64
+Description: nvidia-open mock package (meta)
