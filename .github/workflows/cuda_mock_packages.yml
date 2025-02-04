@@ -59,7 +59,7 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            cuda_mock_build_output/*.deb
+            cuda_mock_build_output/mocks/*.deb
 
       - name: Cleanup
-        run: rm -rf cuda_mock_build_output/*.deb
+        run: rm -rf cuda_mock_build_output
