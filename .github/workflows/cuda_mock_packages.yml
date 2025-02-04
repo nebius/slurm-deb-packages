@@ -30,7 +30,7 @@ jobs:
       - name: Build docker images
         uses: docker/build-push-action@67a2d409c0a876cbe6b11854e3e25193efe4e62d # v6.12.0
         with:
-          context: .
+          file: cuda-mock-packages/Dockerfile
           push: false
           tags: cuda_mock_builder:0.0.1
           platforms: linux/amd64
