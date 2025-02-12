@@ -63,6 +63,6 @@ RUN cd /usr/src && \
 ################################################################
 
 # Create tar.gz archive with NCCL-tests binaries
-RUN cd build && \
+RUN cd /usr/src/nccl-tests/build && \
     tar -czvf nccl-tests-perf.tar.gz *_perf*
 
