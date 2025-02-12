@@ -1,0 +1,71 @@
+name: Build nccl tests binaries
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    permissions:
+      contents: write  # for softprops/action-gh-release to create GitHub release
+    runs-on: self-hosted
+
+    strategy:
+      fail-fast: false
+      matrix:
+        build:
+          - cuda_version: 12.4.1
+            build_args:
+              BASE_IMAGE=nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@cb605e52c26070c328afc4562f0b4ada7618a84e # v2.10.4
+        with:
+          egress-policy: audit
+
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f7ce87c1d6bead3e36075b2ce75da1f6cc28aaca # v3.9.0
+
+      - name: Build docker images
+        uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991 # v6.13.0
+        with:
+          file: nccl-tests/Dockerfile
+          push: false
+          tags: nccl_tests_builder:${{ matrix.build.cuda_version }}
+          platforms: linux/amd64
+          load: true
+          build-args: |
+            ${{ matrix.build.build_args }}
+          cache-from: type=local,src=.buildx-cache
+          cache-to: type=local,dest=.buildx-cache,mode=max
+
+      - name: Create nccl_tests_build_output directory
+        run: mkdir -p nccl_tests_build_output
+
+      - name: Run Docker container and copy files
+        run: |
+          container_id=$(docker create nccl_tests_builder:${{ matrix.build.cuda_version }})
+          docker start $container_id
+          docker cp $container_id:/usr/src/nccl-tests/build/nccl-tests-perf.tar.gz ./nccl_tests_build_output/
+          docker rm $container_id
+
+      - name: Create GitHub Release and Upload NCCL tests
+        uses: softprops/action-gh-release@01570a1f39cb168c169c802c3bceb9e93fb10974 # v2.1.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: nccl_tests_${{ matrix.build.cuda_version }}
+          name: NCCL tests for cuda ${{ matrix.build.cuda_version }}
+          draft: false
+          prerelease: false
+          files: |
+            nccl_tests_build_output/nccl-tests-perf.tar.gz
+
+      - name: Cleanup
+        run: rm -rf nccl_tests_build_output/*.tar.gz
