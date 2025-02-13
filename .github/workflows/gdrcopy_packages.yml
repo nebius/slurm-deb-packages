@@ -46,7 +46,7 @@ jobs:
 
       - name: Run Docker container and copy files
         run: |
-          container_id=$(docker create dgrcopy_builder:v${{ matrix.dgrcopy.version }})
+          container_id=$(docker create dgrcopy_builder:${{ matrix.dgrcopy.version }})
           docker start $container_id
           docker cp $container_id:/gdrcopy/packages/debs/ ./gdrcopy_build_output/
           docker rm $container_id
