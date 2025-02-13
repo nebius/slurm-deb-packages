@@ -17,10 +17,11 @@ RUN apt-get update && \
         dkms
 
 # Download gdrcopy sources
-RUN git clone --branch v2.4.4 --depth 1 https://github.com/NVIDIA/gdrcopy && cd gdrcopy/packages
+RUN git clone --branch v2.4.4 --depth 1 https://github.com/NVIDIA/gdrcopy
 
 # Build deb packages
-RUN sed -i 's/gdrdrv-dkms (= @FULL_VERSION@), //g' debian-meta/control && \
+RUN cd gdrcopy/packages && \
+    sed -i 's/gdrdrv-dkms (= @FULL_VERSION@), //g' debian-meta/control && \
     CUDA=/usr/local/cuda ./build-deb-packages.sh && \
     mkdir debs && \
     mv *.deb debs && \
