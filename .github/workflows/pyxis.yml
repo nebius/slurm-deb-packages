@@ -20,7 +20,7 @@ jobs:
         enroot:
           - version: 3.5.0
         pyxis:
-          - vesion: 0.21.0
+          - version: 0.21.0
         image:
           - file: pyxis/Dockerfile
             push: false
