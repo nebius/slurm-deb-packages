@@ -46,7 +46,7 @@ jobs:
         with:
           file: ${{ matrix.image.file }}
           push: ${{ matrix.image.push }}
-          tags: pyxis_builder_slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}:${{ matrix.pyxis.vesion }}
+          tags: pyxis_builder:slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}_pyxis_${{ matrix.pyxis.vesion }}
           platforms: ${{ matrix.image.platforms }}
           load: ${{ matrix.image.load }}
           build-args: |
