@@ -62,7 +62,7 @@ jobs:
 
       - name: Run Docker container and copy files
         run: |
-          container_id=$(docker pyxis_builder_slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}:${{ matrix.pyxis.vesion }})
+          container_id=$(docker create pyxis_builder:slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}_pyxis_${{ matrix.pyxis.vesion }})
           docker start $container_id
           docker cp $container_id:/usr/src/debs/ ./pyxis_build_output/
           docker rm $container_id
