@@ -18,12 +18,14 @@ jobs:
         slurm:
           - version: 24.05.5
         image:
-          - file: slurm-packages/Dockerfile
+          - context: .
             push: false
             platforms: linux/amd64
             load: true
+            ubuntu_version: jammy
+            cuda_version: 12.4.1
             build_args:
-              BASE_IMAGE=ubuntu:22.04
+              BASE_IMAGE=nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
 
     steps:
       - name: Harden Runner
@@ -40,9 +42,9 @@ jobs:
       - name: Build docker images
         uses: docker/build-push-action@ca877d9245402d1537745e0e356eab47c3520991 # v6.13.0
         with:
-          file: ${{ matrix.image.file }}
+          context: ${{ matrix.image.context }}
           push: ${{ matrix.image.push }}
-          tags: slurm_packages:${{ matrix.slurm.version }}
+          tags: slurm_builder:${{ matrix.image.cuda_version }}-${{ matrix.image.ubuntu_version }}-slurm${{ matrix.slurm.version }}
           platforms: ${{ matrix.image.platforms }}
           load: ${{ matrix.image.load }}
           build-args: |
@@ -51,14 +53,15 @@ jobs:
           cache-from: type=local,src=.buildx-cache
           cache-to: type=local,dest=.buildx-cache,mode=max
 
-      - name: Create slurm_packages_output directory
-        run: mkdir -p slurm_packages_output
+      - name: Create slurm_build_output directory
+        run: mkdir -p slurm_build_output
 
       - name: Run Docker container and copy files
         run: |
-          container_id=$(docker create slurm_packages:${{ matrix.slurm.version }})
+          container_id=$(docker create slurm_builder:${{ matrix.image.cuda_version }}-${{ matrix.image.ubuntu_version }}-slurm${{ matrix.slurm.version }})
           docker start $container_id
-          docker cp $container_id:/usr/src/debs/ ./slurm_packages_output/
+          docker cp $container_id:/usr/src/debs/ ./slurm_build_output/
+          docker cp $container_id:/usr/src/nccl-tests/build/nccl-tests-perf.tar.gz ./slurm_build_output/
           docker rm $container_id
 
       - name: Create GitHub Release and Upload DEB packages
@@ -66,13 +69,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: slurm-packages-${{ matrix.slurm.version }}
-          name: Slurm packages ${{ matrix.slurm.version }}
+          tag_name: ${{ matrix.image.cuda_version }}-${{ matrix.image.ubuntu_version }}-slurm${{ matrix.slurm.version }}
+          name: Cuda ${{ matrix.image.cuda_version }}, Ubuntu ${{ matrix.image.ubuntu_version }}, Slurm ${{ matrix.slurm.version }}
+          body: "Release based on Ubuntu ${{ matrix.image.ubuntu_version }} for Slurm ${{ matrix.slurm.version }} with cuda ${{ matrix.image.cuda_version }}, nccl-tests and pyxis"
           draft: false
           prerelease: false
           files: |
-            slurm_packages_output/debs/*.deb
+            slurm_build_output/debs/*.deb
+            slurm_build_output/nccl-tests-perf.tar.gz
             
 
       - name: Cleanup
-        run: rm -rf slurm_packages_output/*.deb
+        run: rm -rf slurm_build_output/*.deb
