@@ -46,7 +46,7 @@ jobs:
         with:
           file: ${{ matrix.image.file }}
           push: ${{ matrix.image.push }}
-          tags: pyxis_builder:${{ matrix.pyxis.vesion }}
+          tags: pyxis_builder_slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}:${{ matrix.pyxis.vesion }}
           platforms: ${{ matrix.image.platforms }}
           load: ${{ matrix.image.load }}
           build-args: |
@@ -62,7 +62,7 @@ jobs:
 
       - name: Run Docker container and copy files
         run: |
-          container_id=$(docker pyxis_builder:${{ matrix.pyxis.vesion }})
+          container_id=$(docker pyxis_builder_slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}:${{ matrix.pyxis.vesion }})
           docker start $container_id
           docker cp $container_id:/usr/src/debs/ ./pyxis_build_output/
           docker rm $container_id
@@ -72,8 +72,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: pyxis-${{ matrix.pyxis.version }}
+          tag_name: pyxis-${{ matrix.pyxis.version }}_slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}
           name: Pyxis ${{ matrix.pyxis.version }}
+          body: Pyxis ${{ matrix.pyxis.version }} for Slurm ${{ matrix.slurm.version }} and Enroot ${{ matrix.enroot.version }}
           draft: false
           prerelease: false
           files: |
