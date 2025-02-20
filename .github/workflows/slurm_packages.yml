@@ -45,7 +45,7 @@ jobs:
         with:
           file: ${{ matrix.image.file }}
           push: ${{ matrix.image.push }}
-          tags: slurm_packages:${{ matrix.slurm.version }}-${{ env.SHORT_SHA }}"
+          tags: slurm_packages:${{ matrix.slurm.version }}-${{ env.SHORT_SHA }}
           platforms: ${{ matrix.image.platforms }}
           load: ${{ matrix.image.load }}
           build-args: |
