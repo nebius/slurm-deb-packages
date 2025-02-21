@@ -27,7 +27,7 @@ jobs:
             platforms: linux/amd64
             load: true
             build_args:
-              BASE_IMAGE=ubuntu:22.04
+              BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/ubuntu:jammy
 
     steps:
       - name: Harden Runner
