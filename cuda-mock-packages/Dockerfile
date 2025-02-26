@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM cr.eu-north1.nebius.cloud/soperator/ubuntu:jammy
 
 ARG DEBIAN_FRONTEND=noninteractive
 

@@ -18,7 +18,7 @@ jobs:
         build:
           - cuda_version: 12.4.1
             build_args:
-              BASE_IMAGE=nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+              BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
 
     steps:
       - name: Harden Runner
