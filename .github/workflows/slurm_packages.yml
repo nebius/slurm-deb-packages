@@ -62,6 +62,7 @@ jobs:
           container_id=$(docker create slurm_packages:${{ matrix.slurm.version }}-${{ env.SHORT_SHA }})
           docker start $container_id
           docker cp $container_id:/usr/src/debs/ ./slurm_packages_output/
+          docker stop $container_id
           docker rm $container_id
 
       - name: Create GitHub Release and Upload DEB packages

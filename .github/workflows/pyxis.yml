@@ -65,6 +65,7 @@ jobs:
           container_id=$(docker create pyxis_builder:slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}_pyxis_${{ matrix.pyxis.vesion }})
           docker start $container_id
           docker cp $container_id:/usr/src/debs/ ./pyxis_build_output/
+          docker stop $container_id
           docker rm $container_id
 
       - name: Create GitHub Release and Upload DEB packages
