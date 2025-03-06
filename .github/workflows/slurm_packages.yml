@@ -16,7 +16,7 @@ jobs:
       fail-fast: false
       matrix:
         slurm:
-          - version: 24.05.5
+          - version: 24.05.6
         image:
           - file: slurm-packages/Dockerfile
             push: false
@@ -59,9 +59,10 @@ jobs:
 
       - name: Run Docker container and copy files
         run: |
-          container_id=$(docker create slurm_packages:${{ matrix.slurm.version }})
+          container_id=$(docker create slurm_packages:${{ matrix.slurm.version }}-${{ env.SHORT_SHA }})
           docker start $container_id
           docker cp $container_id:/usr/src/debs/ ./slurm_packages_output/
+          docker stop $container_id
           docker rm $container_id
 
       - name: Create GitHub Release and Upload DEB packages

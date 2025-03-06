@@ -49,6 +49,7 @@ jobs:
           container_id=$(docker create dgrcopy_builder:${{ matrix.dgrcopy.version }})
           docker start $container_id
           docker cp $container_id:/gdrcopy/packages/debs/ ./gdrcopy_build_output/
+          docker stop $container_id
           docker rm $container_id
 
       - name: Create GitHub Release and Upload DEB packages

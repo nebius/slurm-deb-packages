@@ -53,6 +53,7 @@ jobs:
           container_id=$(docker create nccl_tests_builder:${{ matrix.build.cuda_version }})
           docker start $container_id
           docker cp $container_id:/usr/src/nccl-tests/build/nccl-tests-perf.tar.gz ./nccl_tests_build_output/
+          docker stop $container_id
           docker rm $container_id
 
       - name: Create GitHub Release and Upload NCCL tests
