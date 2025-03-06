@@ -59,7 +59,7 @@ jobs:
 
       - name: Run Docker container and copy files
         run: |
-          container_id=$(docker create slurm_packages:${{ matrix.slurm.version }})
+          container_id=$(docker create slurm_packages:${{ matrix.slurm.version }}-${{ env.SHORT_SHA }})
           docker start $container_id
           docker cp $container_id:/usr/src/debs/ ./slurm_packages_output/
           docker rm $container_id
