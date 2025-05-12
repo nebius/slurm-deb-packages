@@ -2,12 +2,15 @@ ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/nvidia/cuda:12.4.1-cudnn-deve
 
 FROM $BASE_IMAGE
 
-ARG SLURM_VERSION=24.05.6
+ARG SLURM_VERSION=24.05.7
 ARG OPENMPI_VERSION=4.1.7a1
 ARG OPENMPI_SUBVERSION=1.2310055
 ARG OFED_VERSION=23.10-2.1.3.1
 
 ARG DEBIAN_FRONTEND=noninteractive
+
+ARG LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/targets/x86_64-linux/lib:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
+
 
 # Install dependencies
 RUN apt-get update && \
@@ -56,12 +59,12 @@ RUN cd /etc/apt/sources.list.d && \
     apt update && \
     apt install openmpi=${OPENMPI_VERSION}-${OPENMPI_SUBVERSION}
 
-ENV LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/targets/x86_64-linux/lib:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
 ENV PATH=$PATH:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/bin
 
 # Build deb packages for Slurm
 RUN cd /usr/src/slurm-${SLURM_VERSION} && \
-    sed -i 's/--with-pmix\b/--with-pmix=\/usr\/lib\/x86_64-linux-gnu\/pmix2/' debian/rules && \
+    ARCH=$(uname -m) && \
+    sed -i 's/--with-pmix\b/--with-pmix=\/usr\/lib\/${ARCH}-linux-gnu\/pmix2/' debian/rules && \
     mk-build-deps -i debian/control -t "apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y" && \
     debuild -b -uc -us
 
