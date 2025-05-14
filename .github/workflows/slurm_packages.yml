@@ -1,4 +1,4 @@
-name: Build slurm packages on ${{ matrix.platform }} platform
+name: Build slurm packages
 
 on:
   workflow_dispatch:
