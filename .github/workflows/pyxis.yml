@@ -8,26 +8,28 @@ permissions:
 
 jobs:
   build:
+    name: Build for ${{ matrix.platform }}
     permissions:
       contents: write  # for softprops/action-gh-release to create GitHub release
-    runs-on: self-hosted
+    runs-on: ${{ matrix.runner }}
 
     strategy:
       fail-fast: false
       matrix:
         slurm:
-          - version: 24.05.6
+          - version: 24.05.7
         enroot:
           - version: 3.5.0
         pyxis:
           - version: 0.21.0
-        image:
-          - file: pyxis/Dockerfile
-            push: false
-            platforms: linux/amd64
-            load: true
-            build_args:
-              BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/ubuntu:jammy
+        platform:
+          - linux/amd64
+          - linux/arm64
+        include:
+          - platform: linux/amd64
+            runner: X64
+          - platform: linux/arm64
+            runner: ARM64
 
     steps:
       - name: Harden Runner
@@ -44,13 +46,13 @@ jobs:
       - name: Build docker images
         uses: docker/build-push-action@14487ce63c7a62a4a324b0bfb37086795e31c6c1 # v6.16.0
         with:
-          file: ${{ matrix.image.file }}
-          push: ${{ matrix.image.push }}
+          file: pyxis/Dockerfile
+          push: false
           tags: pyxis_builder:slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}_pyxis_${{ matrix.pyxis.vesion }}
-          platforms: ${{ matrix.image.platforms }}
-          load: ${{ matrix.image.load }}
+          platforms: ${{ matrix.platform }}
+          load: true
           build-args: |
-            ${{ matrix.image.build_args }}
+            BASE_IMAGE=ubuntu:jammy
             SLURM_VERSION=${{ matrix.slurm.version }}
             ENROOT_VERSION=${{ matrix.enroot.version }}
             PYXIS_VERSION=${{ matrix.pyxis.version }}

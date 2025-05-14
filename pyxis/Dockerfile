@@ -1,8 +1,8 @@
-ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/ubuntu:jammy
+ARG BASE_IMAGE=ubuntu:jammy
 
 FROM $BASE_IMAGE
 
-ARG SLURM_VERSION=24.05.6
+ARG SLURM_VERSION=24.05.7
 ARG ENROOT_VERSION=3.5.0
 ARG PYXIS_VERSION=0.21.0
 
@@ -34,12 +34,18 @@ RUN apt-get update && \
         zstd \
         libpmix2 \
         libpmix-dev && \
-    apt clean
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
+
+# Add Nebius public registry
+RUN curl -fsSL https://dr.nebius.cloud/public.gpg -o /usr/share/keyrings/nebius.gpg.pub && \
+    echo "deb [signed-by=/usr/share/keyrings/nebius.gpg.pub] https://dr.nebius.cloud/ stable main" > /etc/apt/sources.list.d/nebius.list
 
 # Install enroot (required for pyxis)
-RUN curl -fSsL -o /tmp/enroot_${ENROOT_VERSION}-1_amd64.deb https://github.com/NVIDIA/enroot/releases/download/v${ENROOT_VERSION}/enroot_${ENROOT_VERSION}-1_amd64.deb && \
-    curl -fSsL -o /tmp/enroot+caps_${ENROOT_VERSION}-1_amd64.deb https://github.com/NVIDIA/enroot/releases/download/v${ENROOT_VERSION}/enroot+caps_${ENROOT_VERSION}-1_amd64.deb && \
-    apt install -y /tmp/*.deb && rm -rf /tmp/*.deb && \
+RUN apt-get update && \
+    apt install -y enroot=${ENROOT_VERSION}-1 enroot+caps=${ENROOT_VERSION}-1 && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
     mkdir -m 777 /usr/share/enroot/enroot-data && \
     mkdir -m 755 /run/enroot && \
     setcap cap_sys_admin+pe /usr/bin/enroot-mksquashovlfs && \
@@ -48,15 +54,15 @@ RUN curl -fSsL -o /tmp/enroot_${ENROOT_VERSION}-1_amd64.deb https://github.com/N
 
 # Download and build pyxis deb
 # TODO @itechdima: keep watching this PR https://github.com/NVIDIA/pyxis/pull/155
-RUN cd /usr/src && \
-    wget https://github.com/nebius/slurm-deb-packages/releases/download/slurm-packages-${SLURM_VERSION}/slurm-smd_${SLURM_VERSION}-1_amd64.deb && \
-    wget https://github.com/nebius/slurm-deb-packages/releases/download/slurm-packages-${SLURM_VERSION}/slurm-smd-dev_${SLURM_VERSION}-1_amd64.deb && \
-    apt install -y /usr/src/*.deb && \
+RUN apt-get update && apt install slurm-smd=${SLURM_VERSION}-1 slurm-smd-dev=${SLURM_VERSION}-1 && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* && \
+    cd /usr/src && \
     wget https://github.com/itechdima/pyxis/archive/refs/tags/v"$PYXIS_VERSION".tar.gz && \
     tar -xzvf v"$PYXIS_VERSION".tar.gz && \
     rm v"$PYXIS_VERSION".tar.gz && \
     cd pyxis-"$PYXIS_VERSION" && \
-    sed -i 's|dh_auto_install -- prefix= libdir=/usr/lib/$(DEB_HOST_MULTIARCH) datarootdir=/usr/share|dh_auto_install -- prefix=/usr libdir=/usr/lib/x86_64-linux-gnu datarootdir=/usr/share|' debian/rules && \
+    ARCH=$(uname -m) && \
+    sed -i 's|dh_auto_install -- prefix= libdir=/usr/lib/$(DEB_HOST_MULTIARCH) datarootdir=/usr/share|dh_auto_install -- prefix=/usr libdir=/usr/lib/${ARCH}-linux-gnu datarootdir=/usr/share|' debian/rules && \
     make orig && \
     make deb
 
