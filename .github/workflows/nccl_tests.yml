@@ -8,17 +8,29 @@ permissions:
 
 jobs:
   build:
+    name: Build for ${{ matrix.platform }}
     permissions:
       contents: write  # for softprops/action-gh-release to create GitHub release
-    runs-on: self-hosted
+    runs-on: ${{ matrix.runner }}
 
     strategy:
       fail-fast: false
       matrix:
+        platform:
+          - linux/amd64
+          - linux/arm64
         build:
           - cuda_version: 12.4.1
             build_args:
-              BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+              BASE_IMAGE=nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+        include:
+          - platform: linux/amd64
+            runner: X64
+            ld_library_path: /lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/targets/x86_64-linux/lib:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
+          - platform: linux/arm64
+            runner: ARM64
+            ld_library_path: /lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu:/usr/local/nvidia/lib:/usr/local/cuda-12.4/targets/sbsa-linux/lib/:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
+
 
     steps:
       - name: Harden Runner
@@ -32,29 +44,43 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@b5ca514318bd6ebac0fb2aedd5d36ec1b5c232a2 # v3.10.0
 
+      - name: Set lowercase arch var
+        run: echo "ARCH=${{ toLower(matrix.runner) }}" >> $GITHUB_ENV
+
       - name: Build docker images
         uses: docker/build-push-action@14487ce63c7a62a4a324b0bfb37086795e31c6c1 # v6.16.0
         with:
           file: nccl-tests/Dockerfile
           push: false
           tags: nccl_tests_builder:${{ matrix.build.cuda_version }}
-          platforms: linux/amd64
+          platforms: ${{ matrix.platform }}
           load: true
           build-args: |
             ${{ matrix.build.build_args }}
+            LD_LIBRARY_PATH=${{ matrix.ld_library_path }}
+            ARCH=${{ env.ARCH }}
           cache-from: type=local,src=.buildx-cache
           cache-to: type=local,dest=.buildx-cache,mode=max
 
       - name: Create nccl_tests_build_output directory
         run: mkdir -p nccl_tests_build_output
 
+
+
       - name: Run Docker container and copy files
         run: |
+          echo "Creating container for image: nccl_tests_builder:${{ matrix.build.cuda_version }}"
           container_id=$(docker create nccl_tests_builder:${{ matrix.build.cuda_version }})
+          
           docker start $container_id
-          docker cp $container_id:/usr/src/nccl-tests/build/nccl-tests-perf.tar.gz ./nccl_tests_build_output/
+          
+          echo "Copying /usr/src/nccl-tests/build/nccl-tests-perf-${ARCH}.tar.gz"
+          docker cp "$container_id:/usr/src/nccl-tests/build/nccl-tests-perf-${ARCH}.tar.gz" ./nccl_tests_build_output/
+          
           docker stop $container_id
           docker rm $container_id
+        env:
+          ARCH: ${{ env.ARCH }}
 
       - name: Create GitHub Release and Upload NCCL tests
         uses: softprops/action-gh-release@da05d552573ad5aba039eaac05058a918a7bf631 # v2.2.2
@@ -66,7 +92,7 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            nccl_tests_build_output/nccl-tests-perf.tar.gz
+            nccl_tests_build_output/nccl-tests-perf-${{ env.ARCH }}.tar.gz
 
       - name: Cleanup
         run: rm -rf nccl_tests_build_output/*.tar.gz
