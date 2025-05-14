@@ -54,7 +54,7 @@ RUN apt-get update && \
 
 # Download and build pyxis deb
 # TODO @itechdima: keep watching this PR https://github.com/NVIDIA/pyxis/pull/155
-RUN apt-get update && apt install slurm-smd=${SLURM_VERSION}-1 slurm-smd-dev=${SLURM_VERSION}-1 && \
+RUN apt-get update && apt install -y slurm-smd=${SLURM_VERSION}-1 slurm-smd-dev=${SLURM_VERSION}-1 && \
     apt-get clean && rm -rf /var/lib/apt/lists/* && \
     cd /usr/src && \
     wget https://github.com/itechdima/pyxis/archive/refs/tags/v"$PYXIS_VERSION".tar.gz && \
