@@ -5,8 +5,11 @@ FROM $BASE_IMAGE
 ARG OPENMPI_VERSION=4.1.7a1
 ARG OPENMPI_SUBVERSION=1.2310055
 ARG OFED_VERSION=23.10-2.1.3.1
+ARG ARCH=x86
 
 ARG DEBIAN_FRONTEND=noninteractive
+
+ARG LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/targets/x86_64-linux/lib:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
 
 # Install dependencies
 RUN apt-get update && \
@@ -24,7 +27,6 @@ RUN cd /etc/apt/sources.list.d && \
     apt update && \
     apt install openmpi=${OPENMPI_VERSION}-${OPENMPI_SUBVERSION}
 
-ENV LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/targets/x86_64-linux/lib:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
 ENV PATH=$PATH:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/bin
 
 # Build binaries
@@ -64,5 +66,5 @@ RUN cd /usr/src && \
 
 # Create tar.gz archive with NCCL-tests binaries
 RUN cd /usr/src/nccl-tests/build && \
-    tar -czvf nccl-tests-perf.tar.gz *_perf*
+    tar -czvf nccl-tests-perf-${ARCH}.tar.gz *_perf*
 
