@@ -1,4 +1,6 @@
-FROM cr.eu-north1.nebius.cloud/soperator/ubuntu:jammy
+ARG BASE_IMAGE=ubuntu:jammy
+
+FROM $BASE_IMAGE
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -7,11 +9,14 @@ RUN apt-get update && \
     apt -y install \
         equivs
 
-RUN mkdir -p mocks
-COPY cuda-mock-packages/cuda-drivers /mocks
-COPY cuda-mock-packages/nvidia-open /mocks
+COPY cuda-mock-packages/ /cuda-mock-packages
 
-WORKDIR mocks
+WORKDIR cuda-mock-packages
+
+RUN ARCH=$(uname -m) && \
+    sed -i "s/^Architecture: .*/Architecture: ${ARCH}/" cuda-drivers && \
+    sed -i "s/^Architecture: .*/Architecture: ${ARCH}/" nvidia-open
+
 RUN equivs-build cuda-drivers
 RUN equivs-build nvidia-open
 
