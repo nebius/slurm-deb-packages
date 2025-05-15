@@ -2,6 +2,8 @@ ARG BASE_IMAGE=nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
 
 FROM $BASE_IMAGE
 
+ARG DGRCOPY_VERSION=2.5
+
 ARG DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
@@ -17,7 +19,7 @@ RUN apt-get update && \
         dkms
 
 # Download gdrcopy sources
-RUN git clone --branch v2.4.4 --depth 1 https://github.com/NVIDIA/gdrcopy
+RUN git clone --branch v${DGRCOPY_VERSION} --depth 1 https://github.com/NVIDIA/gdrcopy
 
 # Build deb packages
 RUN cd gdrcopy/packages && \
@@ -25,7 +27,7 @@ RUN cd gdrcopy/packages && \
     CUDA=/usr/local/cuda ./build-deb-packages.sh && \
     mkdir debs && \
     mv *.deb debs && \
-    rm -rf debs/gdrdrv-dkms_2.4.4*.deb && \
+    rm -rf debs/gdrdrv-dkms*.deb && \
     ls -la debs
 
 ################################################################
