@@ -8,12 +8,22 @@ permissions:
 
 jobs:
   build:
+    name: Build for ${{ matrix.platform }}
     permissions:
       contents: write  # for softprops/action-gh-release to create GitHub release
-    runs-on: self-hosted
+    runs-on: ${{ matrix.runner }}
 
     strategy:
       fail-fast: false
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm64
+        include:
+          - platform: linux/amd64
+            runner: X64
+          - platform: linux/arm64
+            runner: ARM64
 
     steps:
       - name: Harden Runner
@@ -33,8 +43,10 @@ jobs:
           file: cuda-mock-packages/Dockerfile
           push: false
           tags: cuda_mock_builder:0.0.1
-          platforms: linux/amd64
+          platforms: ${{ matrix.platform }}
           load: true
+          build-args: |
+            BASE_IMAGE=ubuntu:jammy
           cache-from: type=local,src=.buildx-cache
           cache-to: type=local,dest=.buildx-cache,mode=max
 
