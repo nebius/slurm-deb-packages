@@ -15,7 +15,7 @@ WORKDIR cuda-mock-packages
 
 RUN ARCH=$(uname -m) && \
     sed -i "s/^Architecture: .*/Architecture: ${ARCH}/" cuda-drivers && \
-    sed -i "s/^Architecture: .*/Architecture: ${ARCH}/" nvidia-open \
+    sed -i "s/^Architecture: .*/Architecture: ${ARCH}/" nvidia-open
 
 RUN equivs-build cuda-drivers
 RUN equivs-build nvidia-open
