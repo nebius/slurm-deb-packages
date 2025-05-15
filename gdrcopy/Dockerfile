@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+ARG BASE_IMAGE=nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
 
 FROM $BASE_IMAGE
 
@@ -25,7 +25,7 @@ RUN cd gdrcopy/packages && \
     CUDA=/usr/local/cuda ./build-deb-packages.sh && \
     mkdir debs && \
     mv *.deb debs && \
-    rm -rf debs/gdrdrv-dkms_2.4.4_amd64.Ubuntu22_04.deb && \
+    rm -rf debs/gdrdrv-dkms_2.4.4*.deb && \
     ls -la debs
 
 ################################################################

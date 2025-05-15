@@ -8,15 +8,24 @@ permissions:
 
 jobs:
   build:
+    name: Build for ${{ matrix.platform }}
     permissions:
       contents: write  # for softprops/action-gh-release to create GitHub release
-    runs-on: self-hosted
+    runs-on: ${{ matrix.runner }}
 
     strategy:
       fail-fast: false
       matrix:
         dgrcopy:
           - version: 2.4.4
+        platform:
+          - linux/amd64
+          - linux/arm64
+        include:
+          - platform: linux/amd64
+            runner: X64
+          - platform: linux/arm64
+            runner: ARM64
 
     steps:
       - name: Harden Runner
@@ -36,7 +45,7 @@ jobs:
           file: gdrcopy/Dockerfile
           push: false
           tags: dgrcopy_builder:${{ matrix.dgrcopy.version }}
-          platforms: linux/amd64
+          platforms: ${{ matrix.platform }}
           load: true
           cache-from: type=local,src=.buildx-cache
           cache-to: type=local,dest=.buildx-cache,mode=max
