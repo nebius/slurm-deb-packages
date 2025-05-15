@@ -70,7 +70,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: gdrcopy-${{ matrix.dgrcopy.version }}
-          name: Dgrcopy packages
+          name: Dgrcopy packages ${{ matrix.dgrcopy.version }}
           body: "Dgrcopy packages without gdrdrv-dkms requirements"
           draft: false
           prerelease: false
