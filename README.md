@@ -10,6 +10,23 @@ Slurm is a highly scalable cluster management and job scheduling system for Linu
 
 Additionally, binary files for running NCCL tests are built to verify and benchmark the performance of the NCCL library in various configurations.
 
+### Installing packages from the Nebius public repository
+
+1. **Add the public key and repository**
+
+   ```bash
+   sudo curl -fsSL https://dr.nebius.cloud/public.gpg -o /usr/share/keyrings/nebius.gpg.pub
+
+   echo "deb [signed-by=/usr/share/keyrings/nebius.gpg.pub] https://dr.nebius.cloud/ stable main" | \
+     sudo tee /etc/apt/sources.list.d/nebius.list > /dev/null
+2. **Install the package**
+  
+    ```bash
+    sudo apt update
+    sudo apt install slurm-smd
+    ```
+
+
 ### Dependencies
 
 The build process includes the following components:
@@ -17,6 +34,7 @@ The build process includes the following components:
 - **OpenPMIx**: The Open Process Management Interface for Exascale, which provides a set of interfaces for managing the execution of applications at large scales.
 - **NVIDIA NCCL**: NVIDIA's collective communication library optimized for multi-GPU and multi-node systems.
 - **NCCL tests**: A suite of tests provided by NVIDIA to validate and benchmark the performance of the NCCL library across different hardware configurations.
+
 
 ## Download packages
 
