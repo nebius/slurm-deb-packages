@@ -57,7 +57,7 @@ jobs:
         run: |
           container_id=$(docker create cuda_mock_builder:0.0.1)
           docker start $container_id
-          docker cp $container_id:/mocks/ ./cuda_mock_build_output/
+          docker cp $container_id:/cuda-mock-packages/ ./cuda_mock_build_output/
           docker stop $container_id
           docker rm $container_id
 
@@ -72,7 +72,7 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            cuda_mock_build_output/mocks/*.deb
+            cuda_mock_build_output/cuda-mock-packages/*.deb
 
       - name: Cleanup
         run: rm -rf cuda_mock_build_output
