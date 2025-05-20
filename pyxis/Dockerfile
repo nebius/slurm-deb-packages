@@ -62,7 +62,7 @@ RUN apt-get update && apt install -y slurm-smd=${SLURM_VERSION}-1 slurm-smd-dev=
     rm v"$PYXIS_VERSION".tar.gz && \
     cd pyxis-"$PYXIS_VERSION" && \
     ARCH=$(uname -m) && \
-    sed -i 's|dh_auto_install -- prefix= libdir=/usr/lib/$(DEB_HOST_MULTIARCH) datarootdir=/usr/share|dh_auto_install -- prefix=/usr libdir=/usr/lib/${ARCH}-linux-gnu datarootdir=/usr/share|' debian/rules && \
+    sed -i 's|dh_auto_install -- prefix= libdir=/usr/lib/${ARCH} datarootdir=/usr/share|dh_auto_install -- prefix=/usr libdir=/usr/lib/${ARCH}-linux-gnu datarootdir=/usr/share|' debian/rules && \
     make orig && \
     make deb
 
