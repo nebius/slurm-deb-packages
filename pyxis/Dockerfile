@@ -62,15 +62,17 @@ RUN apt-get update && apt install -y slurm-smd=${SLURM_VERSION}-1 slurm-smd-dev=
     rm v"$PYXIS_VERSION".tar.gz && \
     cd pyxis-"$PYXIS_VERSION" && \
     ARCH=$(uname -m) && \
-    sed -i 's|dh_auto_install -- prefix= libdir=/usr/lib/${ARCH} datarootdir=/usr/share|dh_auto_install -- prefix=/usr libdir=/usr/lib/${ARCH}-linux-gnu datarootdir=/usr/share|' debian/rules && \
+    sed -i "s/^VERSION\s\+?=\s\+.*/VERSION   ?= ${SLURM_VERSION}-${PYXIS_VERSION}/" Makefile && \
+    sed -i "s|dh_auto_install -- prefix=.*|dh_auto_install -- prefix=/usr libdir=/usr/lib/${ARCH}-linux-gnu datarootdir=/usr/share|" debian/rules && \
+    { echo "nvslurm-plugin-pyxis (${SLURM_VERSION}-${PYXIS_VERSION}-1) UNRELEASED; urgency=medium"; echo ""; echo "  * Release ${PYXIS_VERSION} for Slurm ${SLURM_VERSION}"; echo ""; echo " -- NEBIUS <amialiusik@nebius.com>  Tue, 28 Jan 2025 00:17:05 +0000"; echo ""; cat debian/changelog; } > debian/changelog.new && mv debian/changelog.new debian/changelog && \
     make orig && \
     make deb
 
 ################################################################
 # RESULT
 ################################################################
-# ls -la ../nvslurm-plugin-pyxis*.deb
-# /usr/src/nvslurm-plugin-pyxis_0.20.0-1_amd64.deb
+#ls -la ../nvslurm-plugin-pyxis_24.11.5-0.21.0-1_amd64.deb
+#-rw-r--r-- 1 root root 21698 Jun 19 12:32 ../nvslurm-plugin-pyxis_24.11.5-0.21.0-1_amd64.deb
 ################################################################
 
 # Move deb files

@@ -76,7 +76,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: pyxis-${{ matrix.pyxis.version }}_slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}
-          name: Pyxis ${{ matrix.pyxis.version }}
+          name: Pyxis ${{ matrix.pyxis.version }} for Slurm ${{ matrix.slurm.version }}
           body: Pyxis ${{ matrix.pyxis.version }} for Slurm ${{ matrix.slurm.version }} and Enroot ${{ matrix.enroot.version }}
           draft: false
           prerelease: false
