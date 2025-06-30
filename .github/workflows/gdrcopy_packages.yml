@@ -48,7 +48,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           load: true
           build-args: |
-            BASE_IMAGE=nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+            BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/cuda:12.9.0-cudnn-devel-ubuntu22.04
             DGRCOPY_VERSION=${{ matrix.dgrcopy.version }}
           cache-from: type=local,src=.buildx-cache
           cache-to: type=local,dest=.buildx-cache,mode=max
