@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/cuda:12.9.0-cudnn-devel-ubuntu22.04
 
 FROM $BASE_IMAGE
 
@@ -31,7 +31,7 @@ ENV PATH=$PATH:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/bin
 
 # Build binaries
 RUN cd /usr/src && \
-    git clone --branch v2.14.0 --depth 1 https://github.com/NVIDIA/nccl-tests.git && \
+    git clone --branch v2.16.4 --depth 1 https://github.com/NVIDIA/nccl-tests.git && \
     cd nccl-tests && \
     make && \
     make MPI=1 MPI_HOME=/usr/mpi/gcc/openmpi-4.1.7a1 CUDA_HOME=/usr/local/cuda BUILDDIR=build_mpi && \

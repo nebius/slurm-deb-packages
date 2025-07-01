@@ -27,7 +27,7 @@ jobs:
             ld_library_path: /lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/targets/x86_64-linux/lib:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
           - platform: linux/arm64
             runner: ARM64
-            ld_library_path: /lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu:/usr/local/nvidia/lib:/usr/local/cuda-12.4/targets/sbsa-linux/lib/:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
+            ld_library_path: /lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu:/usr/local/nvidia/lib:/usr/local/cuda-12.9/targets/sbsa-linux/lib/:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
 
     steps:
       - name: Harden Runner
