@@ -4,8 +4,8 @@ FROM $BASE_IMAGE
 
 ARG SLURM_VERSION=24.11.5
 ARG OPENMPI_VERSION=4.1.7a1
-ARG OPENMPI_SUBVERSION=1.2310055
-ARG OFED_VERSION=23.10-2.1.3.1
+ARG OPENMPI_SUBVERSION=1.2404066
+ARG OFED_VERSION=24.04-0.7.0.0
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -54,7 +54,7 @@ RUN cd /usr/src && \
 
 # Install Openmpi
 RUN cd /etc/apt/sources.list.d && \
-    wget https://linux.mellanox.com/public/repo/mlnx_ofed/${OFED_VERSION}/$(. /etc/os-release; echo $ID$VERSION_ID)/mellanox_mlnx_ofed.list && \
+    wget https://linux.mellanox.com/public/repo/mlnx_ofed/${OFED_VERSION}/ubuntu24.04/mellanox_mlnx_ofed.list && \
     wget -qO - https://www.mellanox.com/downloads/ofed/RPM-GPG-KEY-Mellanox | apt-key add - && \
     apt update && \
     apt install openmpi=${OPENMPI_VERSION}-${OPENMPI_SUBVERSION}
