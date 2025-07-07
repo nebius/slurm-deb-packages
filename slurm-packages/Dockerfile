@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/cuda:12.9.0-cudnn-devel-ubuntu22.04
+ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/cuda:12.9.0-cudnn-devel-ubuntu24.04
 
 FROM $BASE_IMAGE
 
@@ -32,7 +32,7 @@ RUN apt-get update && \
         libjson-c-dev \
         munge \
         libmunge-dev \
-        libjwt0 \
+        libjwt2 \
         libjwt-dev \
         libhwloc-dev \
         liblz4-dev \

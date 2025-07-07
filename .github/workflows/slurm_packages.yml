@@ -24,9 +24,11 @@ jobs:
         include:
           - platform: linux/amd64
             runner: X64
+            distribution: ubuntu24.04
             ld_library_path: /lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/targets/x86_64-linux/lib:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
           - platform: linux/arm64
             runner: ARM64
+            distribution: ubuntu24.04
             ld_library_path: /lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu:/usr/local/nvidia/lib:/usr/local/cuda-12.9/targets/sbsa-linux/lib/:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
 
     steps:
@@ -53,7 +55,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           load: true
           build-args: |
-            BASE_IMAGE=nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+            BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/cuda:12.9.0-cudnn-devel-ubuntu24.04
             SLURM_VERSION=${{ matrix.slurm.version }}
             LD_LIBRARY_PATH=${{ matrix.ld_library_path }}
           cache-from: type=local,src=.buildx-cache
@@ -75,8 +77,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: slurm-packages-${{ matrix.slurm.version }}
-          name: Slurm packages ${{ matrix.slurm.version }}
+          tag_name: slurm-packages-${{ matrix.slurm.distribution }}-${{ matrix.slurm.version }}
+          name: Slurm packages for ${{ matrix.slurm.distribution }} version ${{ matrix.slurm.version }}
           draft: false
           prerelease: false
           files: |
