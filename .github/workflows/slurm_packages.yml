@@ -77,8 +77,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: slurm-packages-${{ matrix.slurm.distribution }}-${{ matrix.slurm.version }}
-          name: Slurm packages for ${{ matrix.slurm.distribution }} version ${{ matrix.slurm.version }}
+          tag_name: slurm-packages-${{ matrix.distribution }}-${{ matrix.slurm.version }}
+          name: Slurm packages ${{ matrix.slurm.version }} for ${{ matrix.distribution }}
           draft: false
           prerelease: false
           files: |
