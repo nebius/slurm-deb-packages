@@ -18,6 +18,8 @@ jobs:
       matrix:
         dgrcopy:
           - version: 2.5
+        distribution:
+          - ubuntu24.04
         platform:
           - linux/amd64
           - linux/arm64
@@ -44,11 +46,10 @@ jobs:
         with:
           file: gdrcopy/Dockerfile
           push: false
-          tags: dgrcopy_builder:${{ matrix.dgrcopy.version }}
+          tags: dgrcopy_builder:${{ matrix.dgrcopy.version }}_${{ matrix.distribution }}
           platforms: ${{ matrix.platform }}
           load: true
           build-args: |
-            BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/cuda:12.9.0-cudnn-devel-ubuntu22.04
             DGRCOPY_VERSION=${{ matrix.dgrcopy.version }}
           cache-from: type=local,src=.buildx-cache
           cache-to: type=local,dest=.buildx-cache,mode=max
@@ -58,7 +59,7 @@ jobs:
 
       - name: Run Docker container and copy files
         run: |
-          container_id=$(docker create dgrcopy_builder:${{ matrix.dgrcopy.version }})
+          container_id=$(docker create dgrcopy_builder:${{ matrix.dgrcopy.version }}_${{ matrix.distribution }})
           docker start $container_id
           docker cp $container_id:/gdrcopy/packages/debs/ ./gdrcopy_build_output/
           docker stop $container_id
@@ -69,8 +70,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: gdrcopy-${{ matrix.dgrcopy.version }}
-          name: Dgrcopy packages ${{ matrix.dgrcopy.version }}
+          tag_name: gdrcopy-${{ matrix.dgrcopy.version }}_${{ matrix.distribution }}
+          name: Dgrcopy packages ${{ matrix.dgrcopy.version }} for ${{ matrix.distribution }}
           body: "Dgrcopy packages without gdrdrv-dkms requirements"
           draft: false
           prerelease: false
