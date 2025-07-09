@@ -55,7 +55,6 @@ jobs:
           platforms: ${{ matrix.platform }}
           load: true
           build-args: |
-            BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/cuda:12.9.0-cudnn-devel-ubuntu24.04
             SLURM_VERSION=${{ matrix.slurm.version }}
             LD_LIBRARY_PATH=${{ matrix.ld_library_path }}
           cache-from: type=local,src=.buildx-cache
