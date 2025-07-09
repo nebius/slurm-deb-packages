@@ -22,6 +22,8 @@ jobs:
           - version: 3.5.0
         pyxis:
           - version: 0.21.0
+        distribution:
+          - ubuntu24.04
         platform:
           - linux/amd64
           - linux/arm64
@@ -48,11 +50,10 @@ jobs:
         with:
           file: pyxis/Dockerfile
           push: false
-          tags: pyxis_builder:slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}_pyxis_${{ matrix.pyxis.vesion }}
+          tags: pyxis_builder:slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}_pyxis_${{ matrix.pyxis.vesion }}_${{ matrix.distribution }}
           platforms: ${{ matrix.platform }}
           load: true
           build-args: |
-            BASE_IMAGE=ubuntu:jammy
             SLURM_VERSION=${{ matrix.slurm.version }}
             ENROOT_VERSION=${{ matrix.enroot.version }}
             PYXIS_VERSION=${{ matrix.pyxis.version }}
@@ -64,7 +65,7 @@ jobs:
 
       - name: Run Docker container and copy files
         run: |
-          container_id=$(docker create pyxis_builder:slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}_pyxis_${{ matrix.pyxis.vesion }})
+          container_id=$(docker create pyxis_builder:slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}_pyxis_${{ matrix.pyxis.vesion }}_${{ matrix.distribution }})
           docker start $container_id
           docker cp $container_id:/usr/src/debs/ ./pyxis_build_output/
           docker stop $container_id
@@ -75,9 +76,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: pyxis-${{ matrix.pyxis.version }}_slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}
-          name: Pyxis ${{ matrix.pyxis.version }} for Slurm ${{ matrix.slurm.version }}
-          body: Pyxis ${{ matrix.pyxis.version }} for Slurm ${{ matrix.slurm.version }} and Enroot ${{ matrix.enroot.version }}
+          tag_name: pyxis-${{ matrix.pyxis.version }}_slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}_${{ matrix.distribution }}
+          name: Pyxis ${{ matrix.pyxis.version }} for Slurm ${{ matrix.slurm.version }} and ${{ matrix.distribution }}
+          body: Pyxis ${{ matrix.pyxis.version }} for Slurm ${{ matrix.slurm.version }}, Enroot ${{ matrix.enroot.version }} and ${{ matrix.distribution }}
           draft: false
           prerelease: false
           files: |
