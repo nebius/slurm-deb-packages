@@ -21,8 +21,9 @@ jobs:
           - linux/arm64
         build:
           - cuda_version: 12.9.0
-            build_args:
-              BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/cuda:12.9.0-cudnn-devel-ubuntu22.04
+            build_args: []
+        distribution:
+          - ubuntu24.04
         include:
           - platform: linux/amd64
             runner: X64
@@ -52,7 +53,7 @@ jobs:
         with:
           file: nccl-tests/Dockerfile
           push: false
-          tags: nccl_tests_builder:${{ matrix.build.cuda_version }}
+          tags: nccl_tests_builder:${{ matrix.build.cuda_version }}_${{ matrix.distribution }}
           platforms: ${{ matrix.platform }}
           load: true
           build-args: |
@@ -65,12 +66,10 @@ jobs:
       - name: Create nccl_tests_build_output directory
         run: mkdir -p nccl_tests_build_output
 
-
-
       - name: Run Docker container and copy files
         run: |
-          echo "Creating container for image: nccl_tests_builder:${{ matrix.build.cuda_version }}"
-          container_id=$(docker create nccl_tests_builder:${{ matrix.build.cuda_version }})
+          echo "Creating container for image: nccl_tests_builder:${{ matrix.build.cuda_version }}_${{ matrix.distribution }}"
+          container_id=$(docker create nccl_tests_builder:${{ matrix.build.cuda_version }}_${{ matrix.distribution }})
           
           docker start $container_id
           
@@ -87,8 +86,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: nccl_tests_${{ matrix.build.cuda_version }}
-          name: NCCL tests for cuda ${{ matrix.build.cuda_version }}
+          tag_name: nccl_tests_${{ matrix.build.cuda_version }}_${{ matrix.distribution }}
+          name: NCCL tests for cuda ${{ matrix.build.cuda_version }} and ${{ matrix.distribution }}
           draft: false
           prerelease: false
           files: |
