@@ -21,6 +21,8 @@ jobs:
         platform:
           - linux/amd64
           - linux/arm64
+        distribution:
+         - ubuntu24.04
         include:
           - platform: linux/amd64
             runner: X64
@@ -53,7 +55,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           load: true
           build-args: |
-            BASE_IMAGE=nvidia/cuda:12.4.1-cudnn-devel-ubuntu22.04
+            BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/cuda:12.9.0-cudnn-devel-ubuntu24.04
             SLURM_VERSION=${{ matrix.slurm.version }}
             LD_LIBRARY_PATH=${{ matrix.ld_library_path }}
           cache-from: type=local,src=.buildx-cache
@@ -75,8 +77,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: slurm-packages-${{ matrix.slurm.version }}
-          name: Slurm packages ${{ matrix.slurm.version }}
+          tag_name: slurm-packages-${{ matrix.distribution }}-${{ matrix.slurm.version }}
+          name: Slurm packages ${{ matrix.slurm.version }} for ${{ matrix.distribution }}
           draft: false
           prerelease: false
           files: |
