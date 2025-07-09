@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/cuda:12.9.0-cudnn-devel-ubuntu22.04
+ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/cuda:12.9.0-cudnn-devel-ubuntu24.04
 
 FROM $BASE_IMAGE
 
@@ -33,7 +33,7 @@ RUN cd gdrcopy/packages && \
 ################################################################
 # RESULT
 ################################################################
-# gdrcopy-tests_2.4.4_amd64.Ubuntu22_04+cuda12.4.deb
-# gdrcopy_2.4.4_amd64.Ubuntu22_04.deb
-# libgdrapi_2.4.4_amd64.Ubuntu22_04.deb
+# gdrcopy-tests_2.5_amd64.Ubuntu24_04+cuda12.4.deb
+# gdrcopy_2.5_amd64.Ubuntu24_04.deb
+# libgdrapi_2.5_amd64.Ubuntu24_04.deb
 ################################################################
