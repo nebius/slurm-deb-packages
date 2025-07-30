@@ -1,8 +1,8 @@
-ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/cuda:12.9.0-cudnn-devel-ubuntu24.04
+ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/cuda_base:12.9.0-ubuntu24.04-nccl2.26.5-1-295cb71
 
 FROM $BASE_IMAGE
 
-ARG SLURM_VERSION=24.11.5
+ARG SLURM_VERSION
 ARG OPENMPI_VERSION=4.1.7a1
 ARG OPENMPI_SUBVERSION=1.2404066
 ARG OFED_VERSION=24.04-0.7.0.0
