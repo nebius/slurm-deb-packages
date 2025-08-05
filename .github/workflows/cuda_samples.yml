@@ -70,8 +70,8 @@ jobs:
           
           docker start $container_id
           
-          echo "Copying /usr/src/cuda-samples/cuda-samples-${ARCH}.tar.gz"
-          docker cp "$container_id:/usr/src/cuda-samples/cuda-samples-${ARCH}.tar.gz" ./cuda_samples_build_output/
+          echo "Copying /usr/src/cuda-samples-${ARCH}.tar.gz"
+          docker cp "$container_id:/usr/src/cuda-samples-${ARCH}.tar.gz" ./cuda_samples_build_output/
           
           docker stop $container_id
           docker rm $container_id
