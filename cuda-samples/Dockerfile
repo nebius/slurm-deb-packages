@@ -30,5 +30,5 @@ RUN mkdir -p /tmp/cuda-samples/build && cd /tmp/cuda-samples/build && mkdir -p /
 ################################################################
 
 # Create tar.gz archive with cuda-samples binaries
-RUN cd /usr/src/cuda-samples && \
-    tar -czvf cuda-samples-${ARCH}.tar.gz .
+RUN cd /usr/src && \
+    tar -czvf cuda-samples-${ARCH}.tar.gz cuda-samples
