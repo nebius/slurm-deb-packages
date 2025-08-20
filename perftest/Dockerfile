@@ -23,8 +23,8 @@ RUN apt-get update && \
 RUN git clone https://github.com/linux-rdma/perftest.git /tmp/perftest && \
     cd /tmp/perftest && \
     ./autogen.sh && \
-    ./configure && \
-    make -j"$(nproc)"
+    ./configure --enable-cudart && \
+    make
 
 # Collect required binaries into /usr/src/perftest
 RUN mkdir -p /usr/src/perftest && \
