@@ -10,12 +10,14 @@ RUN apt-get update && \
         git \
         build-essential \
         autoconf \
+        automake \
         libtool \
         libibverbs-dev \
         librdmacm-dev \
         libibumad-dev \
         libpci-dev \
-        libmlx5-1 && \
+        libmlx5-1 \
+        pkg-config && \
     rm -rf /var/lib/apt/lists/*
 
 
