@@ -30,16 +30,14 @@ RUN git clone https://github.com/linux-rdma/perftest.git /tmp/perftest && \
 
 # Collect required binaries into /usr/src/perftest
 RUN mkdir -p /usr/src/perftest && \
-    cp /tmp/perftest/ib_write_bw /usr/src/perftest/ && \
-    cp /tmp/perftest/ib_write_lat /usr/src/perftest/
+    cp /tmp/perftest/ib_* /usr/src/perftest/
 
 ################################################################
 # RESULT
 ################################################################
-# /usr/src/perftest/ib_write_bw
-# /usr/src/perftest/ib_write_lat
+# /usr/src/perftest/ib_*   (all ib_* binaries)
 ################################################################
 
-# Create tar.gz archive with the two perftest binaries
+# Create tar.gz archive with the ib_* perftest binaries
 RUN cd /usr/src/perftest && \
-    tar -czvf perftest-${ARCH}.tar.gz ib_write_bw ib_write_lat
+    tar -czvf perftest-${ARCH}.tar.gz ib_*
