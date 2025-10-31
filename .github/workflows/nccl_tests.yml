@@ -27,9 +27,11 @@ jobs:
         include:
           - platform: linux/amd64
             runner: X64
+            arch: x86_64
             ld_library_path: /lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/targets/x86_64-linux/lib:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
           - platform: linux/arm64
             runner: ARM64
+            arch: aarch64
             ld_library_path: /lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu:/usr/local/nvidia/lib:/usr/local/cuda-12.9/targets/sbsa-linux/lib/:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
 
 
@@ -39,9 +41,6 @@ jobs:
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
-
-      - name: Set lowercase arch var
-        run: echo "ARCH=$(echo '${{ matrix.runner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Build docker images
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
@@ -54,7 +53,6 @@ jobs:
           build-args: |
             ${{ matrix.build.build_args }}
             LD_LIBRARY_PATH=${{ matrix.ld_library_path }}
-            ARCH=${{ env.ARCH }}
           cache-from: type=local,src=.buildx-cache
           cache-to: type=local,dest=.buildx-cache,mode=max
 
@@ -68,13 +66,11 @@ jobs:
           
           docker start $container_id
           
-          echo "Copying /usr/src/nccl-tests/build/nccl-tests-perf-${ARCH}.tar.gz"
-          docker cp "$container_id:/usr/src/nccl-tests/build/nccl-tests-perf-${ARCH}.tar.gz" ./nccl_tests_build_output/
+          echo "Copying /usr/src/nccl-tests/build/nccl-tests-perf-${{ matrix.arch }}.tar.gz"
+          docker cp "$container_id:/usr/src/nccl-tests/build/nccl-tests-perf-${{ matrix.arch }}.tar.gz" ./nccl_tests_build_output/
           
           docker stop $container_id
           docker rm $container_id
-        env:
-          ARCH: ${{ env.ARCH }}
 
       - name: Create GitHub Release and Upload NCCL tests
         uses: softprops/action-gh-release@6da8fa9354ddfdc4aeace5fc48d7f679b5214090 # v2.4.1
@@ -86,7 +82,7 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            nccl_tests_build_output/nccl-tests-perf-${{ env.ARCH }}.tar.gz
+            nccl_tests_build_output/nccl-tests-perf-${{ matrix.arch }}.tar.gz
 
       - name: Cleanup
         run: rm -rf nccl_tests_build_output/*.tar.gz

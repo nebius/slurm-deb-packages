@@ -5,7 +5,6 @@ FROM $BASE_IMAGE
 ARG OPENMPI_VERSION=4.1.7a1
 ARG OPENMPI_SUBVERSION=1.2404066
 ARG OFED_VERSION=24.04-0.7.0.0
-ARG ARCH=x64
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -66,5 +65,5 @@ RUN cd /usr/src && \
 
 # Create tar.gz archive with NCCL-tests binaries
 RUN cd /usr/src/nccl-tests/build && \
-    tar -czvf nccl-tests-perf-${ARCH}.tar.gz *_perf*
+    tar -czvf nccl-tests-perf-$(uname -m).tar.gz *_perf*
 
