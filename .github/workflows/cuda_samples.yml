@@ -22,6 +22,8 @@ jobs:
         build:
           - cuda_version: 12.9.0
             build_args: []
+          - cuda_version: 13.0.2
+            build_args: []
         distribution:
           - ubuntu24.04
         include:
@@ -44,7 +46,7 @@ jobs:
       - name: Build docker images
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
-          file: cuda-samples/Dockerfile
+          file: cuda-samples/cuda-samples-${{ matrix.build.cuda_version }}.dockerfile
           push: false
           tags: cuda_samples_builder:${{ matrix.build.cuda_version }}_${{ matrix.distribution }}
           platforms: ${{ matrix.platform }}
