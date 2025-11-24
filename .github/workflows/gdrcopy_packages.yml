@@ -46,12 +46,6 @@ jobs:
           load: true
           build-args: |
             DGRCOPY_VERSION=${{ matrix.dgrcopy.version }}
-          cache-from: |
-            type=local,src=/mnt/shared-fs/docker/soperator-build-0
-            type=local,src=/mnt/shared-fs/docker/soperator-build-1
-            type=local,src=/mnt/shared-fs/docker/soperator-build-2
-            type=local,src=/mnt/shared-fs/docker/soperator-build-3
-          cache-to: type=local,dest=/mnt/shared-fs/docker/${{ runner.name }},mode=max
 
       - name: Create gdrcopy_build_output directory
         run: mkdir -p gdrcopy_build_output
