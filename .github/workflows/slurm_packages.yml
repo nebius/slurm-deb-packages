@@ -52,8 +52,12 @@ jobs:
           build-args: |
             SLURM_VERSION=${{ matrix.slurm.version }}
             LD_LIBRARY_PATH=${{ matrix.ld_library_path }}
-          cache-from: type=local,src=.buildx-cache
-          cache-to: type=local,dest=.buildx-cache,mode=max
+          cache-from: |
+            - type=local,src=/mnt/shared-fs/docker/soperator-build-0
+            - type=local,src=/mnt/shared-fs/docker/soperator-build-1
+            - type=local,src=/mnt/shared-fs/docker/soperator-build-2
+            - type=local,src=/mnt/shared-fs/docker/soperator-build-3
+          cache-to: type=local,dest=/mnt/shared-fs/docker/${{ runner.name }},mode=max
 
       - name: Create slurm_packages_output directory
         run: mkdir -p slurm_packages_output
