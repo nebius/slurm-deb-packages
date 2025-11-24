@@ -8,7 +8,7 @@ ARG OFED_VERSION=24.04-0.7.0.0
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-ARG LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/targets/x86_64-linux/lib:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
+ARG LD_LIBRARY_PATH=/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib:/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/targets/x86_64-linux/lib
 
 # Install dependencies
 RUN apt-get update && \
@@ -26,7 +26,7 @@ RUN cd /etc/apt/sources.list.d && \
     apt update && \
     apt install openmpi=${OPENMPI_VERSION}-${OPENMPI_SUBVERSION}
 
-ENV PATH=$PATH:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/bin
+ENV PATH=/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/bin:$PATH
 
 # Build binaries
 RUN cd /usr/src && \
