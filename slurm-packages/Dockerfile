@@ -61,7 +61,7 @@ ENV PATH=/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/bin:$PATH
 
 # Build deb packages for Slurm
 RUN cd /usr/src/slurm-${SLURM_VERSION} && \
-    sed -i "s|--with-pmix\b|--with-pmix=/usr/mpi/gcc/openmpi-4.1.7a1/${OPENMPI_VERSION}|" debian/rules && \
+    sed -i "s|--with-pmix\b|--with-pmi=/usr/mpi/gcc/openmpi-4.1.7a1/${OPENMPI_VERSION}|" debian/rules && \
     mk-build-deps -i debian/control -t "apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y" && \
     debuild -b -uc -us
 
