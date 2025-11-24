@@ -54,10 +54,10 @@ jobs:
             ${{ matrix.build.build_args }}
             ARCH=${{ matrix.arch }}
           cache-from: |
-            - type=local,src=/mnt/shared-fs/docker/soperator-build-0
-            - type=local,src=/mnt/shared-fs/docker/soperator-build-1
-            - type=local,src=/mnt/shared-fs/docker/soperator-build-2
-            - type=local,src=/mnt/shared-fs/docker/soperator-build-3
+            type=local,src=/mnt/shared-fs/docker/soperator-build-0
+            type=local,src=/mnt/shared-fs/docker/soperator-build-1
+            type=local,src=/mnt/shared-fs/docker/soperator-build-2
+            type=local,src=/mnt/shared-fs/docker/soperator-build-3
           cache-to: type=local,dest=/mnt/shared-fs/docker/${{ runner.name }},mode=max
 
       - name: Create cuda_samples_build_output directory
