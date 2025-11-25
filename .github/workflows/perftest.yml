@@ -53,8 +53,6 @@ jobs:
           build-args: |
             ${{ matrix.build.build_args }}
             ARCH=${{ matrix.arch }}
-          cache-from: type=local,src=.buildx-cache
-          cache-to: type=local,dest=.buildx-cache,mode=max
 
       - name: Create perftest_build_output directory
         run: mkdir -p perftest_build_output

@@ -52,8 +52,6 @@ jobs:
             SLURM_VERSION=${{ matrix.slurm.version }}
             ENROOT_VERSION=${{ matrix.enroot.version }}
             PYXIS_VERSION=${{ matrix.pyxis.version }}
-          cache-from: type=local,src=.buildx-cache
-          cache-to: type=local,dest=.buildx-cache,mode=max
 
       - name: Create pyxis_build_output directory
         run: mkdir -p pyxis_build_output

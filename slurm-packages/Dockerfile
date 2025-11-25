@@ -3,14 +3,13 @@ ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/cuda_base:12.9.0-ubuntu24.04-
 FROM $BASE_IMAGE
 
 ARG SLURM_VERSION
+ARG LD_LIBRARY_PATH
+
 ARG OPENMPI_VERSION=4.1.7a1
 ARG OPENMPI_SUBVERSION=1.2404066
 ARG OFED_VERSION=24.04-0.7.0.0
 
 ARG DEBIAN_FRONTEND=noninteractive
-
-ARG LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/targets/x86_64-linux/lib:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
-
 
 # Install dependencies
 RUN apt-get update && \
@@ -42,9 +41,8 @@ RUN apt-get update && \
         squashfs-tools \
         zstd \
         zlib1g \
-        zlib1g-dev \
-        libpmix2 \
-        libpmix-dev
+        zlib1g-dev
+
 
 # Download Slurm
 RUN cd /usr/src && \
@@ -59,35 +57,34 @@ RUN cd /etc/apt/sources.list.d && \
     apt update && \
     apt install openmpi=${OPENMPI_VERSION}-${OPENMPI_SUBVERSION}
 
-ENV PATH=$PATH:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/bin
+ENV PATH=/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/bin:$PATH
 
 # Build deb packages for Slurm
 RUN cd /usr/src/slurm-${SLURM_VERSION} && \
-    ARCH=$(uname -m) && \
-    sed -i "s|--with-pmix\b|--with-pmix=/usr/lib/${ARCH}-linux-gnu/pmix2|" debian/rules && \
+    sed -i "s|--with-pmix\b|--with-pmi=/usr/mpi/gcc/openmpi-4.1.7a1/${OPENMPI_VERSION}|" debian/rules && \
     mk-build-deps -i debian/control -t "apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y" && \
     debuild -b -uc -us
 
 ################################################################
 # RESULT
 ################################################################
-# /usr/src/slurm-smd-client_24.05.02-1_amd64.deb
-# /usr/src/slurm-smd-dev_24.05.02-1_amd64.deb
-# /usr/src/slurm-smd-doc_24.05.02-1_all.deb
-# /usr/src/slurm-smd-libnss-slurm_24.05.02-1_amd64.deb
-# /usr/src/slurm-smd-libpam-slurm-adopt_24.05.02-1_amd64.deb
-# /usr/src/slurm-smd-libpmi0_24.05.02-1_amd64.deb
-# /usr/src/slurm-smd-libpmi2-0_24.05.02-1_amd64.deb
-# /usr/src/slurm-smd-libslurm-perl_24.05.02-1_amd64.deb
-# /usr/src/slurm-smd-openlava_24.05.02-1_all.deb
-# /usr/src/slurm-smd-sackd_24.05.02-1_amd64.deb
-# /usr/src/slurm-smd-slurmctld_24.05.02-1_amd64.deb
-# /usr/src/slurm-smd-slurmd_24.05.02-1_amd64.deb
-# /usr/src/slurm-smd-slurmdbd_24.05.02-1_amd64.deb
-# /usr/src/slurm-smd-slurmrestd_24.05.02-1_amd64.deb
-# /usr/src/slurm-smd-sview_24.05.02-1_amd64.deb
-# /usr/src/slurm-smd-torque_24.05.02-1_all.deb
-# /usr/src/slurm-smd_24.05.02-1_amd64.deb
+# /usr/src/slurm-smd_25.05.5-1_amd64.deb
+# /usr/src/slurm-smd-client_25.05.5-1_amd64.deb
+# /usr/src/slurm-smd-dev_25.05.5-1_amd64.deb
+# /usr/src/slurm-smd-doc_25.05.5-1_all.deb
+# /usr/src/slurm-smd-libnss-slurm_25.05.5-1_amd64.deb
+# /usr/src/slurm-smd-libpam-slurm-adopt_25.05.5-1_amd64.deb
+# /usr/src/slurm-smd-libpmi0_25.05.5-1_amd64.deb
+# /usr/src/slurm-smd-libpmi2-0_25.05.5-1_amd64.deb
+# /usr/src/slurm-smd-libslurm-perl_25.05.5-1_amd64.deb
+# /usr/src/slurm-smd-openlava_25.05.5-1_all.deb
+# /usr/src/slurm-smd-sackd_25.05.5-1_amd64.deb
+# /usr/src/slurm-smd-slurmctld_25.05.5-1_amd64.deb
+# /usr/src/slurm-smd-slurmd_25.05.5-1_amd64.deb
+# /usr/src/slurm-smd-slurmdbd_25.05.5-1_amd64.deb
+# /usr/src/slurm-smd-slurmrestd_25.05.5-1_amd64.deb
+# /usr/src/slurm-smd-sview_25.05.5-1_amd64.deb
+# /usr/src/slurm-smd-torque_25.05.5-1_all.deb
 ################################################################
 
 # Move deb files

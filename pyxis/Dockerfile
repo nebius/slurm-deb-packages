@@ -31,11 +31,7 @@ RUN apt-get update && \
         flex \
         libevent-dev \
         squashfs-tools \
-        zstd \
-        libpmix2 \
-        libpmix-dev && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+        zstd
 
 # Add Nebius public registry
 RUN curl -fsSL https://dr.nebius.cloud/public.gpg -o /usr/share/keyrings/nebius.gpg.pub && \

@@ -42,8 +42,6 @@ jobs:
           load: true
           build-args: |
             BASE_IMAGE=ubuntu:jammy
-          cache-from: type=local,src=.buildx-cache
-          cache-to: type=local,dest=.buildx-cache,mode=max
 
       - name: Create cuda_mock_build_output directory
         run: mkdir -p cuda_mock_build_output

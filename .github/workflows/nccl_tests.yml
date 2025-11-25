@@ -30,11 +30,11 @@ jobs:
           - platform: linux/amd64
             runner: X64
             arch: x86_64
-            ld_library_path: /lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/targets/x86_64-linux/lib:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
+            ld_library_path: /usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib:/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/targets/x86_64-linux/lib
           - platform: linux/arm64
             runner: ARM64
             arch: aarch64
-            ld_library_path: /lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu:/usr/local/nvidia/lib:/usr/local/cuda-12.9/targets/sbsa-linux/lib/:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
+            ld_library_path: /usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib:/lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu:/usr/local/nvidia/lib:/usr/local/cuda-12.9/targets/sbsa-linux/lib/:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
 
 
     steps:
@@ -55,8 +55,6 @@ jobs:
           build-args: |
             ${{ matrix.build.build_args }}
             LD_LIBRARY_PATH=${{ matrix.ld_library_path }}
-          cache-from: type=local,src=.buildx-cache
-          cache-to: type=local,dest=.buildx-cache,mode=max
 
       - name: Create nccl_tests_build_output directory
         run: mkdir -p nccl_tests_build_output

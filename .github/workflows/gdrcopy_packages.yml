@@ -46,8 +46,6 @@ jobs:
           load: true
           build-args: |
             DGRCOPY_VERSION=${{ matrix.dgrcopy.version }}
-          cache-from: type=local,src=.buildx-cache
-          cache-to: type=local,dest=.buildx-cache,mode=max
 
       - name: Create gdrcopy_build_output directory
         run: mkdir -p gdrcopy_build_output
