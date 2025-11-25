@@ -17,11 +17,11 @@ jobs:
       fail-fast: false
       matrix:
         slurm:
-          - version: 25.05.4
+          - version: 25.05.5
         enroot:
-          - version: 3.5.0
+          - version: 4.0.1
         pyxis:
-          - version: 0.21.0
+          - version: 0.21.0 # Forked from NVIDIA
         distribution:
           - ubuntu24.04
         platform:

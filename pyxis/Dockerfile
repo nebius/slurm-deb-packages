@@ -1,6 +1,4 @@
-ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/ubuntu:noble
-
-FROM $BASE_IMAGE
+FROM cr.eu-north1.nebius.cloud/soperator/ubuntu:noble
 
 ARG SLURM_VERSION
 ARG ENROOT_VERSION
