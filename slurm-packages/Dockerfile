@@ -12,8 +12,7 @@ ARG OFED_VERSION=24.04-0.7.0.0
 ARG DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
-RUN apt-get update && \
-    apt -y install \
+RUN apt install -y --update \
         git  \
         build-essential \
         devscripts \
@@ -41,7 +40,8 @@ RUN apt-get update && \
         squashfs-tools \
         zstd \
         zlib1g \
-        zlib1g-dev
+        zlib1g-dev \
+        libpmix-dev
 
 
 # Download Slurm
@@ -61,7 +61,8 @@ ENV PATH=/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/bin:$PATH
 
 # Build deb packages for Slurm
 RUN cd /usr/src/slurm-${SLURM_VERSION} && \
-    sed -i "s|--with-pmix\b|--with-pmi=/usr/mpi/gcc/openmpi-4.1.7a1/${OPENMPI_VERSION}|" debian/rules && \
+    ARCH=$(uname -m) && \
+    sed -i "s|--with-pmix\b|--with-pmix=/usr/lib/${ARCH}-linux-gnu/pmix2|" debian/rules && \
     mk-build-deps -i debian/control -t "apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y" && \
     debuild -b -uc -us
 
