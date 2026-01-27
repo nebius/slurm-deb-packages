@@ -11,7 +11,7 @@ jobs:
     name: Build for ${{ matrix.platform }}
     permissions:
       contents: write  # for softprops/action-gh-release to create GitHub release
-    runs-on: ${{ matrix.runner }}
+    runs-on: ubuntu-24.04-4core
 
     strategy:
       fail-fast: false
