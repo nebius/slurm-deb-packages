@@ -44,7 +44,7 @@ jobs:
       - name: Build docker images
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
-          file: slurm-packages/Dockerfile
+          file: slurm-packages/Dockerfile.ubuntu-2204
           push: false
           tags: slurm_packages:${{ matrix.slurm.version }}-${{ env.SHORT_SHA }}
           platforms: ${{ matrix.platform }}
