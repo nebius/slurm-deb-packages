@@ -31,7 +31,7 @@ RUN apt install -y \
         libjson-c-dev \
         munge \
         libmunge-dev \
-        libjwt \
+        libjwt0 \
         libjwt-dev \
         libhwloc-dev \
         liblz4-dev \
