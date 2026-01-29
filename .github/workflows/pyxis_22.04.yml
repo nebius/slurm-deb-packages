@@ -1,4 +1,4 @@
-name: Build pyxis
+name: Build pyxis 22.04
 
 on:
   workflow_dispatch:
