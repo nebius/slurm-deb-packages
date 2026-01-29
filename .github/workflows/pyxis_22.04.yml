@@ -1,0 +1,82 @@
+name: Build pyxis
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build for ${{ matrix.platform }}
+    permissions:
+      contents: write  # for softprops/action-gh-release to create GitHub release
+    runs-on: ${{ matrix.runner }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        slurm:
+          - version: 25.05.5
+        enroot:
+          - version: 4.0.1
+        pyxis:
+          - version: 0.21.0 # Forked from NVIDIA
+        distribution:
+          - ubuntu22.04
+        platform:
+          - linux/amd64
+          - linux/arm64
+        include:
+          - platform: linux/amd64
+            runner: X64
+          - platform: linux/arm64
+            runner: ARM64
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+
+      - name: Build docker images
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        with:
+          file: pyxis/Dockerfile
+          push: false
+          tags: pyxis_builder:slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}_pyxis_${{ matrix.pyxis.vesion }}_${{ matrix.distribution }}
+          platforms: ${{ matrix.platform }}
+          load: true
+          build-args: |
+            SLURM_VERSION=${{ matrix.slurm.version }}
+            ENROOT_VERSION=${{ matrix.enroot.version }}
+            PYXIS_VERSION=${{ matrix.pyxis.version }}
+
+      - name: Create pyxis_build_output directory
+        run: mkdir -p pyxis_build_output
+
+      - name: Run Docker container and copy files
+        run: |
+          container_id=$(docker create pyxis_builder:slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}_pyxis_${{ matrix.pyxis.vesion }}_${{ matrix.distribution }})
+          docker start $container_id
+          docker cp $container_id:/usr/src/debs/ ./pyxis_build_output/
+          docker stop $container_id
+          docker rm $container_id
+
+      - name: Create GitHub Release and Upload DEB packages
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: pyxis-${{ matrix.pyxis.version }}_slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}_${{ matrix.distribution }}
+          name: Pyxis ${{ matrix.pyxis.version }} for Slurm ${{ matrix.slurm.version }} and ${{ matrix.distribution }}
+          body: Pyxis ${{ matrix.pyxis.version }} for Slurm ${{ matrix.slurm.version }}, Enroot ${{ matrix.enroot.version }} and ${{ matrix.distribution }}
+          draft: false
+          prerelease: false
+          files: |
+            pyxis_build_output/debs/*.deb
+            
+
+      - name: Cleanup
+        run: rm -rf pyxis_build_output/*.deb
