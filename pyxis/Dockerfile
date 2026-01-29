@@ -36,14 +36,13 @@ RUN curl -fsSL https://dr.nebius.cloud/public.gpg -o /usr/share/keyrings/nebius.
     codename="$(. /etc/os-release && echo $VERSION_CODENAME)" && \
     echo "deb [signed-by=/usr/share/keyrings/nebius.gpg.pub] https://dr.nebius.cloud/ $codename main" > /etc/apt/sources.list.d/nebius.list
 
+# Install enroot (required for pyxis)
+ARG ARCH
+
 # Download enroot
-RUN if [ "$ARCH" == "linux/amd64" ]; then \
-        ARCH="amd64" \
-    else \
-        ARCH="arm64" \
-    fi && \
-    curl -fSsL -o /tmp/enroot_4.0.1-1_${ARCH}.deb https://github.com/NVIDIA/enroot/releases/download/v${ENROOT_VERSION}/enroot_${ENROOT_VERSION}_${ARCH}-1.deb && \
-    curl -fSsL -o /tmp/enroot+caps_4.0.1-1_${ARCH}.deb https://github.com/NVIDIA/enroot/releases/download/v${ENROOT_VERSION}/enroot+caps_${ENROOT_VERSION}-1_${ARCH}.deb
+RUN ARCH_SAFE=$([ "$ARCH" = "linux/amd64" ] && echo "amd64" || echo "arm64") && \
+    curl -fSsL -o /tmp/enroot_${ENROOT_VERSION}-1_${ARCH_SAFE}.deb https://github.com/NVIDIA/enroot/releases/download/v${ENROOT_VERSION}/enroot_${ENROOT_VERSION}-1_${ARCH_SAFE}.deb && \
+    curl -fSsL -o /tmp/enroot+caps_${ENROOT_VERSION}-1_${ARCH_SAFE}.deb https://github.com/NVIDIA/enroot/releases/download/v${ENROOT_VERSION}/enroot+caps_${ENROOT_VERSION}-1_${ARCH_SAFE}.deb
 
 # Install downloaded packages & rm them
 RUN apt-get update && \
@@ -56,12 +55,22 @@ RUN apt-get update && \
     setcap cap_sys_admin+pe /usr/bin/enroot-mksquashovlfs && \
     setcap cap_sys_admin,cap_mknod+pe /usr/bin/enroot-aufs2ovlfs
 
-
+# Download slurm
+RUN mkdir -p /tmp/slurm && \
+    cd /tmp/slurm && \
+    wget -q https://github.com/togethercomputer/slurm-deb-packages/releases/download/slurm-packages-ubuntu24.04-${SLURM_VERSION}/slurm-smd-dev_${SLURM_VERSION}-1_amd64.deb \
+        https://github.com/togethercomputer/slurm-deb-packages/releases/download/slurm-packages-ubuntu24.04-${SLURM_VERSION}/slurm-smd_${SLURM_VERSION}-1_amd64.deb
+RUN <<EOR
+    apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get -y install --fix-broken \
+        /tmp/slurm/*.deb && \
+    rm -rf /tmp/slurm/*.deb && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+EOR
+        
 # Download and build pyxis deb
 # TODO @itechdima: keep watching this PR https://github.com/NVIDIA/pyxis/pull/155
-RUN apt-get update && apt install -y slurm-smd=${SLURM_VERSION}-1 slurm-smd-dev=${SLURM_VERSION}-1 && \
-    apt-get clean && rm -rf /var/lib/apt/lists/* && \
-    cd /usr/src && \
+RUN cd /usr/src && \
     wget https://github.com/itechdima/pyxis/archive/refs/tags/v"$PYXIS_VERSION".tar.gz && \
     tar -xzvf v"$PYXIS_VERSION".tar.gz && \
     rm v"$PYXIS_VERSION".tar.gz && \
