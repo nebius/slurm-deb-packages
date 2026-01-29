@@ -36,9 +36,19 @@ RUN curl -fsSL https://dr.nebius.cloud/public.gpg -o /usr/share/keyrings/nebius.
     codename="$(. /etc/os-release && echo $VERSION_CODENAME)" && \
     echo "deb [signed-by=/usr/share/keyrings/nebius.gpg.pub] https://dr.nebius.cloud/ $codename main" > /etc/apt/sources.list.d/nebius.list
 
-# Install enroot (required for pyxis)
+# Download enroot
+RUN if [ "$ARCH" == "linux/amd64" ]; then \
+        ARCH="amd64" \
+    else \
+        ARCH="arm64" \
+    fi && \
+    curl -fSsL -o /tmp/enroot_4.0.1-1_${ARCH}.deb https://github.com/NVIDIA/enroot/releases/download/v${ENROOT_VERSION}/enroot_${ENROOT_VERSION}_${ARCH}-1.deb && \
+    curl -fSsL -o /tmp/enroot+caps_4.0.1-1_${ARCH}.deb https://github.com/NVIDIA/enroot/releases/download/v${ENROOT_VERSION}/enroot+caps_${ENROOT_VERSION}-1_${ARCH}.deb
+
+# Install downloaded packages & rm them
 RUN apt-get update && \
-    apt install -y enroot=${ENROOT_VERSION}-1 enroot+caps=${ENROOT_VERSION}-1 && \
+    apt install -y /tmp/*.deb && \
+    rm -rf /tmp/*.deb && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     mkdir -m 777 /usr/share/enroot/enroot-data && \
