@@ -1,4 +1,4 @@
-FROM cr.eu-north1.nebius.cloud/soperator/ubuntu:noble
+FROM cr.eu-north1.nebius.cloud/ml-containers/neubuntu:noble-20260202145316
 
 ARG SLURM_VERSION
 ARG ENROOT_VERSION
@@ -9,32 +9,10 @@ ARG DEBIAN_FRONTEND=noninteractive
 # Install dependencies
 RUN apt-get update && \
     apt -y install \
-        wget \
-        curl \
-        git \
-        build-essential \
-        devscripts \
-        debhelper \
-        fakeroot \
-        autoconf \
-        pkg-config \
-        libssl-dev \
-        libpam0g-dev \
-        libtool \
-        libjansson-dev \
-        libjson-c-dev \
-        libmunge-dev \
-        libhwloc-dev \
-        liblz4-dev \
-        flex \
-        libevent-dev \
-        squashfs-tools \
-        zstd
-
-# Add Nebius public registry
-RUN curl -fsSL https://dr.nebius.cloud/public.gpg -o /usr/share/keyrings/nebius.gpg.pub && \
-    codename="$(. /etc/os-release && echo $VERSION_CODENAME)" && \
-    echo "deb [signed-by=/usr/share/keyrings/nebius.gpg.pub] https://dr.nebius.cloud/ $codename main" > /etc/apt/sources.list.d/nebius.list
+      git \
+      devscripts \
+      debhelper \
+      fakeroot
 
 # Install enroot (required for pyxis)
 RUN apt-get update && \
@@ -45,7 +23,6 @@ RUN apt-get update && \
     mkdir -m 755 /run/enroot && \
     setcap cap_sys_admin+pe /usr/bin/enroot-mksquashovlfs && \
     setcap cap_sys_admin,cap_mknod+pe /usr/bin/enroot-aufs2ovlfs
-
 
 # Download and build pyxis deb
 # TODO @itechdima: keep watching this PR https://github.com/NVIDIA/pyxis/pull/155
