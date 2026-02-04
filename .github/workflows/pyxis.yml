@@ -8,20 +8,21 @@ permissions:
 
 jobs:
   build:
-    name: Build for ${{ matrix.platform }}
+    name: Build for ${{ matrix.platform }} / ${{ matrix.distribution }} / ${{ matrix.slurm_version }}
     permissions:
-      contents: write  # for softprops/action-gh-release to create GitHub release
+      contents: read
     runs-on: ${{ matrix.runner }}
 
     strategy:
       fail-fast: false
       matrix:
-        slurm:
-          - version: 25.05.5
+        slurm_version:
+          - 25.05.6
+          - 25.11.2
         enroot:
           - version: 4.0.1
         pyxis:
-          - version: 0.21.0 # Forked from NVIDIA
+          - version: 0.21.0 # Forked from NVIDIA https://github.com/itechdima/pyxis/releases/tag/v0.21.0
         distribution:
           - ubuntu24.04
         platform:
@@ -29,9 +30,9 @@ jobs:
           - linux/arm64
         include:
           - platform: linux/amd64
-            runner: X64
+            runner: ubuntu-24.04
           - platform: linux/arm64
-            runner: ARM64
+            runner: ubuntu-24.04-arm
 
     steps:
       - name: Checkout repository
@@ -40,43 +41,91 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
 
-      - name: Build docker images
+      - name: Build docker image
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
           file: pyxis/Dockerfile
           push: false
-          tags: pyxis_builder:slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}_pyxis_${{ matrix.pyxis.vesion }}_${{ matrix.distribution }}
+          tags: pyxis_builder:slurm_${{ matrix.slurm_version }}_enroot_${{ matrix.enroot.version }}_pyxis_${{ matrix.pyxis.version }}_${{ matrix.distribution }}
           platforms: ${{ matrix.platform }}
           load: true
           build-args: |
-            SLURM_VERSION=${{ matrix.slurm.version }}
+            SLURM_VERSION=${{ matrix.slurm_version }}
             ENROOT_VERSION=${{ matrix.enroot.version }}
             PYXIS_VERSION=${{ matrix.pyxis.version }}
 
       - name: Create pyxis_build_output directory
-        run: mkdir -p pyxis_build_output
+        run: mkdir -p pyxis_build_output/debs
 
       - name: Run Docker container and copy files
         run: |
-          container_id=$(docker create pyxis_builder:slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}_pyxis_${{ matrix.pyxis.vesion }}_${{ matrix.distribution }})
+          container_id=$(docker create pyxis_builder:slurm_${{ matrix.slurm_version }}_enroot_${{ matrix.enroot.version }}_pyxis_${{ matrix.pyxis.version }}_${{ matrix.distribution }})
           docker start $container_id
-          docker cp $container_id:/usr/src/debs/ ./pyxis_build_output/
+          docker cp $container_id:/usr/src/debs/. ./pyxis_build_output/debs/
           docker stop $container_id
           docker rm $container_id
 
-      - name: Create GitHub Release and Upload DEB packages
+      - name: Normalize platform for artifact names
+        run: echo "PLATFORM_SAFE=${{ matrix.platform }}" | sed 's/\//-/g' >> "$GITHUB_ENV"
+
+      - name: Upload DEB packages as artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: debs-${{ matrix.distribution }}-pyxis_${{ matrix.pyxis.version }}-slurm_${{ matrix.slurm_version }}-enroot_${{ matrix.enroot.version }}-${{ env.PLATFORM_SAFE }}
+          path: pyxis_build_output/debs/*.deb
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Cleanup
+        run: rm -rf pyxis_build_output
+
+
+  release:
+    name: Release pyxis ${{ matrix.pyxis.version }} / slurm ${{ matrix.slurm_version }} / enroot ${{ matrix.enroot.version }} / ${{ matrix.distribution }}
+    needs: [build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        slurm_version:
+          - 25.05.6
+          - 25.11.2
+        enroot:
+          - version: 4.0.1
+        pyxis:
+          - version: 0.21.0
+        distribution:
+          - ubuntu24.04
+
+    concurrency:
+      group: release-pyxis-${{ matrix.pyxis.version }}-slurm-${{ matrix.slurm_version }}-enroot-${{ matrix.enroot.version }}-${{ matrix.distribution }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Download all DEB artifacts for this version set
+        uses: actions/download-artifact@v7
+        with:
+          path: artifacts
+          pattern: debs-${{ matrix.distribution }}-pyxis_${{ matrix.pyxis.version }}-slurm_${{ matrix.slurm_version }}-enroot_${{ matrix.enroot.version }}-*
+          merge-multiple: true
+
+      - name: Show downloaded debs
+        run: |
+          find artifacts -type f -name "*.deb" -print
+
+      - name: Create GitHub Release and upload all DEBs
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: pyxis-${{ matrix.pyxis.version }}_slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}_${{ matrix.distribution }}
-          name: Pyxis ${{ matrix.pyxis.version }} for Slurm ${{ matrix.slurm.version }} and ${{ matrix.distribution }}
-          body: Pyxis ${{ matrix.pyxis.version }} for Slurm ${{ matrix.slurm.version }}, Enroot ${{ matrix.enroot.version }} and ${{ matrix.distribution }}
+          tag_name: pyxis-${{ matrix.pyxis.version }}_slurm_${{ matrix.slurm_version }}_enroot_${{ matrix.enroot.version }}_${{ matrix.distribution }}
+          name: Pyxis ${{ matrix.pyxis.version }} for Slurm ${{ matrix.slurm_version }} and ${{ matrix.distribution }}
+          body: Pyxis ${{ matrix.pyxis.version }} for Slurm ${{ matrix.slurm_version }}, Enroot ${{ matrix.enroot.version }} and ${{ matrix.distribution }}
           draft: false
           prerelease: false
+          fail_on_unmatched_files: true
           files: |
-            pyxis_build_output/debs/*.deb
-            
-
-      - name: Cleanup
-        run: rm -rf pyxis_build_output/*.deb
+            artifacts/**/*.deb
