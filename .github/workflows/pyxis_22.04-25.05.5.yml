@@ -1,4 +1,4 @@
-name: Build pyxis
+name: Build pyxis 22.04
 
 on:
   workflow_dispatch:
@@ -17,13 +17,13 @@ jobs:
       fail-fast: false
       matrix:
         slurm:
-          - version: 25.11.2
+          - version: 25.05.5
         enroot:
           - version: 4.0.1
         pyxis:
           - version: 0.21.0 # Forked from NVIDIA
         distribution:
-          - ubuntu24.04
+          - ubuntu22.04
         platform:
           - linux/amd64
           - linux/arm64
@@ -43,7 +43,7 @@ jobs:
       - name: Build docker images
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
         with:
-          file: pyxis/Dockerfile
+          file: pyxis/Dockerfile.ubuntu-2204
           push: false
           tags: pyxis_builder:slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}_pyxis_${{ matrix.pyxis.vesion }}_${{ matrix.distribution }}
           platforms: ${{ matrix.platform }}

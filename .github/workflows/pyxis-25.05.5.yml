@@ -17,7 +17,7 @@ jobs:
       fail-fast: false
       matrix:
         slurm:
-          - version: 25.11.2
+          - version: 25.05.5
         enroot:
           - version: 4.0.1
         pyxis:

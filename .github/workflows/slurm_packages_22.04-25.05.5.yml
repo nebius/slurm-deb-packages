@@ -1,0 +1,80 @@
+name: Build slurm packages 22.04
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build for ${{ matrix.platform }}
+    permissions:
+      contents: write # for softprops/action-gh-release to create GitHub release
+    runs-on: ubuntu-22.04-4core
+
+    strategy:
+      fail-fast: false
+      matrix:
+        slurm:
+          - version: 25.05.5
+        platform:
+          - linux/amd64
+          - linux/arm64
+        distribution:
+          - ubuntu22.04
+        include:
+          - platform: linux/amd64
+            runner: X64
+            ld_library_path: /usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib:/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/targets/x86_64-linux/lib
+          - platform: linux/arm64
+            runner: ARM64
+            ld_library_path: /usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib:/lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu:/usr/local/nvidia/lib:/usr/local/cuda-12.9/targets/sbsa-linux/lib/
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6.0.0
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3.11.1
+
+      - name: Get short commit hash
+        run: echo "SHORT_SHA=$(git rev-parse --short=8 HEAD)" >> $GITHUB_ENV
+
+      - name: Build docker images
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6.18.0
+        with:
+          file: slurm-packages/Dockerfile.ubuntu-2204
+          push: false
+          tags: slurm_packages:${{ matrix.slurm.version }}-${{ env.SHORT_SHA }}
+          platforms: ${{ matrix.platform }}
+          load: true
+          build-args: |
+            SLURM_VERSION=${{ matrix.slurm.version }}
+            LD_LIBRARY_PATH=${{ matrix.ld_library_path }}
+
+      - name: Create slurm_packages_output directory
+        run: mkdir -p slurm_packages_output
+
+      - name: Run Docker container and copy files
+        run: |
+          container_id=$(docker create slurm_packages:${{ matrix.slurm.version }}-${{ env.SHORT_SHA }})
+          docker start $container_id
+          docker cp $container_id:/usr/src/debs/ ./slurm_packages_output/
+          docker stop $container_id
+          docker rm $container_id
+
+      - name: Create GitHub Release and Upload DEB packages
+        uses: softprops/action-gh-release@5be0e66d93ac7ed76da52eca8bb058f665c3a5fe # v2.4.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: slurm-packages-${{ matrix.distribution }}-${{ matrix.slurm.version }}
+          name: Slurm packages ${{ matrix.slurm.version }} for ${{ matrix.distribution }}
+          draft: false
+          prerelease: false
+          files: |
+            slurm_packages_output/debs/*.deb
+
+      - name: Cleanup
+        run: rm -rf slurm_packages_output/*.deb
