@@ -42,8 +42,8 @@ RUN apt-get update && apt install -y slurm-smd=${SLURM_VERSION}-1 slurm-smd-dev=
 ################################################################
 # RESULT
 ################################################################
-#ls -la ../nvslurm-plugin-pyxis_24.11.5-0.21.0-1_amd64.deb
-#-rw-r--r-- 1 root root 21698 Jun 19 12:32 ../nvslurm-plugin-pyxis_24.11.5-0.21.0-1_amd64.deb
+#ls -la ../nvslurm-plugin-pyxis_24.11.5-0.23.0-1_amd64.deb
+#-rw-r--r-- 1 root root 21698 Jun 19 12:32 ../nvslurm-plugin-pyxis_24.11.5-0.23.0-1_amd64.deb
 ################################################################
 
 # Move deb files
