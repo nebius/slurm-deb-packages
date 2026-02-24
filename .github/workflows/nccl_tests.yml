@@ -24,18 +24,22 @@ jobs:
             build_args: []
           - cuda_version: 13.0.2
             build_args: []
+        nccl_tests_version:
+          - 2.17.9
+          - 2.17.8
+          - 2.17.7
+          - 2.17.6
         distribution:
           - ubuntu24.04
         include:
           - platform: linux/amd64
-            runner: X64
+            runner: ubuntu-24.04
             arch: x86_64
             ld_library_path: /usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib:/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/targets/x86_64-linux/lib
           - platform: linux/arm64
-            runner: ARM64
+            runner: ubuntu-24.04-arm
             arch: aarch64
             ld_library_path: /usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib:/lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu:/usr/local/nvidia/lib:/usr/local/cuda-12.9/targets/sbsa-linux/lib/:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
-
 
     steps:
       - name: Checkout repository
@@ -47,22 +51,24 @@ jobs:
       - name: Build docker images
         uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
         with:
-          file: nccl-tests/nccl-tests-cuda-${{ matrix.build.cuda_version }}.dockerfile
+          file: nccl-tests//Dockerfile
           push: false
-          tags: nccl_tests_builder:${{ matrix.build.cuda_version }}_${{ matrix.distribution }}
+          tags: nccl_tests_builder:${{ matrix.nccl_tests_version }}_cuda${{ matrix.build.cuda_version }}_${{ matrix.distribution }}
           platforms: ${{ matrix.platform }}
           load: true
           build-args: |
             ${{ matrix.build.build_args }}
             LD_LIBRARY_PATH=${{ matrix.ld_library_path }}
+            NCCL_TESTS_VERSION=${{ matrix.nccl_tests_version }}
+            CUDA_VERSION=${{ matrix.build.cuda_version }}
 
       - name: Create nccl_tests_build_output directory
         run: mkdir -p nccl_tests_build_output
 
       - name: Run Docker container and copy files
         run: |
-          echo "Creating container for image: nccl_tests_builder:${{ matrix.build.cuda_version }}_${{ matrix.distribution }}"
-          container_id=$(docker create nccl_tests_builder:${{ matrix.build.cuda_version }}_${{ matrix.distribution }})
+          echo "Creating container for image: nccl_tests_builder:${{ matrix.nccl_tests_version }}_cuda${{ matrix.build.cuda_version }}_${{ matrix.distribution }}"
+          container_id=$(docker create nccl_tests_builder:${{ matrix.nccl_tests_version }}_cuda${{ matrix.build.cuda_version }}_${{ matrix.distribution }})
           
           docker start $container_id
           
@@ -72,17 +78,64 @@ jobs:
           docker stop $container_id
           docker rm $container_id
 
-      - name: Create GitHub Release and Upload NCCL tests
+      - name: Normalize platform for artifact names
+        run: echo "PLATFORM_SAFE=${{ matrix.platform }}" | sed 's/\//-/g' >> "$GITHUB_ENV"
+
+      - name: Upload NCCL tests tarball as artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: nccltests-${{ matrix.distribution }}-nccl_${{ matrix.nccl_tests_version }}-cuda_${{ matrix.build.cuda_version }}-${{ env.PLATFORM_SAFE }}
+          path: nccl_tests_build_output/nccl-tests-perf-${{ matrix.arch }}.tar.gz
+          if-no-files-found: error
+          retention-days: 7
+
+  release:
+    name: Release NCCL tests ${{ matrix.nccl_tests_version }} / cuda ${{ matrix.cuda_version }} / ${{ matrix.distribution }}
+    needs: [ build ]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        nccl_tests_version:
+          - 2.17.9
+          - 2.17.8
+          - 2.17.7
+          - 2.17.6
+        cuda_version:
+          - "12.9.0"
+          - "13.0.2"
+        distribution:
+          - ubuntu24.04
+
+    concurrency:
+      group: release-nccltests-${{ matrix.nccl_tests_version }}-cuda-${{ matrix.cuda_version }}-${{ matrix.distribution }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Download all NCCL tests artifacts for this version set
+        uses: actions/download-artifact@v7
+        with:
+          path: artifacts
+          pattern: nccltests-${{ matrix.distribution }}-nccl_${{ matrix.nccl_tests_version }}-cuda_${{ matrix.cuda_version }}-*
+          merge-multiple: true
+
+      - name: Show downloaded tarballs
+        run: |
+          find artifacts -type f -name "*.tar.gz" -print
+
+      - name: Create GitHub Release and upload all tarballs
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b # v2.5.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: nccl_tests_${{ matrix.build.cuda_version }}_${{ matrix.distribution }}
-          name: NCCL tests for cuda ${{ matrix.build.cuda_version }} and ${{ matrix.distribution }}
+          tag_name: nccl_tests_${{ matrix.nccl_tests_version }}_cuda${{ matrix.cuda_version }}_${{ matrix.distribution }}
+          name: NCCL tests ${{ matrix.nccl_tests_version }} for cuda ${{ matrix.cuda_version }} and ${{ matrix.distribution }}
+          body: NCCL tests ${{ matrix.nccl_tests_version }} for CUDA ${{ matrix.cuda_version }} on ${{ matrix.distribution }} (includes all platforms).
           draft: false
           prerelease: false
+          fail_on_unmatched_files: true
           files: |
-            nccl_tests_build_output/nccl-tests-perf-${{ matrix.arch }}.tar.gz
-
-      - name: Cleanup
-        run: rm -rf nccl_tests_build_output/*.tar.gz
+            artifacts/**/*.tar.gz
