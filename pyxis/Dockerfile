@@ -35,7 +35,7 @@ RUN apt-get update && apt install -y slurm-smd=${SLURM_VERSION}-1 slurm-smd-dev=
     ARCH=$(uname -m) && \
     export PYXIS_VER="${SLURM_VERSION}-${PYXIS_VERSION}" && \
     sed -i "s|dh_auto_install -- prefix=.*|dh_auto_install -- prefix=/usr libdir=/usr/lib/${ARCH}-linux-gnu datarootdir=/usr/share|" debian/rules && \
-    { echo "nvslurm-plugin-pyxis (${SLURM_VERSION}-${PYXIS_VERSION}-1) UNRELEASED; urgency=medium"; echo ""; echo "  * Release ${PYXIS_VERSION} for Slurm ${SLURM_VERSION}"; echo ""; echo " -- NEBIUS <amialiusik@nebius.com>  Tue, 28 Jan 2025 00:17:05 +0000"; echo ""; cat debian/changelog; } > debian/changelog.new && mv debian/changelog.new debian/changelog && \
+    { echo "nvslurm-plugin-pyxis (${SLURM_VERSION}-${PYXIS_VERSION}-1) UNRELEASED; urgency=medium"; echo ""; echo "  * Release ${PYXIS_VERSION} for Slurm ${SLURM_VERSION}"; echo ""; echo " -- NEBIUS <amialiusik@nebius.com>  Tue, 24 Feb 2026 00:17:05 +0000"; echo ""; cat debian/changelog; } > debian/changelog.new && mv debian/changelog.new debian/changelog && \
     make orig && \
     make deb
 
