@@ -1,6 +1,5 @@
-ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/cuda_base:13.0.2-ubuntu24.04-nccl2.28.7-1-14542c2
-
-FROM $BASE_IMAGE
+ARG CUDA_VERSION
+FROM cr.eu-north1.nebius.cloud/ml-containers/cuda:${CUDA_VERSION}-ubuntu24.04-20260220145309
 
 ARG OPENMPI_VERSION=4.1.7a1
 ARG OPENMPI_SUBVERSION=1.2404066
@@ -8,7 +7,7 @@ ARG OFED_VERSION=24.04-0.7.0.0
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-ARG LD_LIBRARY_PATH=/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/targets/x86_64-linux/lib:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
+ARG LD_LIBRARY_PATH=/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib:/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/targets/x86_64-linux/lib
 
 # Install dependencies
 RUN apt-get update && \
@@ -26,14 +25,15 @@ RUN cd /etc/apt/sources.list.d && \
     apt update && \
     apt install openmpi=${OPENMPI_VERSION}-${OPENMPI_SUBVERSION}
 
-ENV PATH=$PATH:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/bin
+ENV PATH=/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/bin:$PATH
 
+ARG NCCL_TESTS_VERSION
 # Build binaries
 RUN cd /usr/src && \
-    git clone --branch v2.17.6 --depth 1 https://github.com/NVIDIA/nccl-tests.git && \
+    git clone --branch v${NCCL_TESTS_VERSION} --depth 1 https://github.com/NVIDIA/nccl-tests.git && \
     cd nccl-tests && \
     make && \
-    make MPI=1 MPI_HOME=/usr/mpi/gcc/openmpi-4.1.7a1 CUDA_HOME=/usr/local/cuda BUILDDIR=build_mpi && \
+    make MPI=1 MPI_HOME=/usr/mpi/gcc/openmpi-${OPENMPI_VERSION} CUDA_HOME=/usr/local/cuda BUILDDIR=build_mpi && \
     for f in build_mpi/*_perf; do mv "$f" "${f}_mpi"; done && \
     mv build_mpi/*_mpi build
 
