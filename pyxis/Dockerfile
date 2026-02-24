@@ -1,4 +1,4 @@
-FROM cr.eu-north1.nebius.cloud/ml-containers/neubuntu:noble-20260202145316
+FROM cr.eu-north1.nebius.cloud/ml-containers/neubuntu:noble-20260220113744
 
 ARG SLURM_VERSION
 ARG ENROOT_VERSION

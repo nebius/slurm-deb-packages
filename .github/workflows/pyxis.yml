@@ -18,7 +18,7 @@ jobs:
       matrix:
         slurm_version:
           - 25.05.6
-          - 25.11.2
+          - 25.11.3
         enroot:
           - version: 4.0.1
         pyxis:
@@ -92,7 +92,7 @@ jobs:
       matrix:
         slurm_version:
           - 25.05.6
-          - 25.11.2
+          - 25.11.3
         enroot:
           - version: 4.0.1
         pyxis:
