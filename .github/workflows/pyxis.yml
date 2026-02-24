@@ -20,7 +20,7 @@ jobs:
           - 25.05.6
           - 25.11.3
         enroot:
-          - version: 4.0.1
+          - version: 4.1.1
         pyxis:
           - version: 0.23.0
         distribution:
@@ -94,7 +94,7 @@ jobs:
           - 25.05.6
           - 25.11.3
         enroot:
-          - version: 4.0.1
+          - version: 4.1.1
         pyxis:
           - version: 0.23.0
         distribution:
