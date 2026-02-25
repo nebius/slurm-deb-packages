@@ -20,9 +20,9 @@ jobs:
           - 25.05.6
           - 25.11.3
         enroot:
-          - version: 4.0.1
+          - version: 4.1.1
         pyxis:
-          - version: 0.21.0 # Forked from NVIDIA https://github.com/itechdima/pyxis/releases/tag/v0.21.0
+          - version: 0.23.0
         distribution:
           - ubuntu24.04
         platform:
@@ -94,9 +94,9 @@ jobs:
           - 25.05.6
           - 25.11.3
         enroot:
-          - version: 4.0.1
+          - version: 4.1.1
         pyxis:
-          - version: 0.21.0
+          - version: 0.23.0
         distribution:
           - ubuntu24.04
 

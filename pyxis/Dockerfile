@@ -25,26 +25,25 @@ RUN apt-get update && \
     setcap cap_sys_admin,cap_mknod+pe /usr/bin/enroot-aufs2ovlfs
 
 # Download and build pyxis deb
-# TODO @itechdima: keep watching this PR https://github.com/NVIDIA/pyxis/pull/155
 RUN apt-get update && apt install -y slurm-smd=${SLURM_VERSION}-1 slurm-smd-dev=${SLURM_VERSION}-1 && \
     apt-get clean && rm -rf /var/lib/apt/lists/* && \
     cd /usr/src && \
-    wget https://github.com/itechdima/pyxis/archive/refs/tags/v"$PYXIS_VERSION".tar.gz && \
+    wget https://github.com/nvidia/pyxis/archive/refs/tags/v"$PYXIS_VERSION".tar.gz && \
     tar -xzvf v"$PYXIS_VERSION".tar.gz && \
     rm v"$PYXIS_VERSION".tar.gz && \
     cd pyxis-"$PYXIS_VERSION" && \
     ARCH=$(uname -m) && \
-    sed -i "s/^VERSION\s\+?=\s\+.*/VERSION   ?= ${SLURM_VERSION}-${PYXIS_VERSION}/" Makefile && \
+    export PYXIS_VER="${SLURM_VERSION}-${PYXIS_VERSION}" && \
     sed -i "s|dh_auto_install -- prefix=.*|dh_auto_install -- prefix=/usr libdir=/usr/lib/${ARCH}-linux-gnu datarootdir=/usr/share|" debian/rules && \
-    { echo "nvslurm-plugin-pyxis (${SLURM_VERSION}-${PYXIS_VERSION}-1) UNRELEASED; urgency=medium"; echo ""; echo "  * Release ${PYXIS_VERSION} for Slurm ${SLURM_VERSION}"; echo ""; echo " -- NEBIUS <amialiusik@nebius.com>  Tue, 28 Jan 2025 00:17:05 +0000"; echo ""; cat debian/changelog; } > debian/changelog.new && mv debian/changelog.new debian/changelog && \
+    { echo "nvslurm-plugin-pyxis (${SLURM_VERSION}-${PYXIS_VERSION}-1) UNRELEASED; urgency=medium"; echo ""; echo "  * Release ${PYXIS_VERSION} for Slurm ${SLURM_VERSION}"; echo ""; echo " -- NEBIUS <amialiusik@nebius.com>  Tue, 24 Feb 2026 00:17:05 +0000"; echo ""; cat debian/changelog; } > debian/changelog.new && mv debian/changelog.new debian/changelog && \
     make orig && \
     make deb
 
 ################################################################
 # RESULT
 ################################################################
-#ls -la ../nvslurm-plugin-pyxis_24.11.5-0.21.0-1_amd64.deb
-#-rw-r--r-- 1 root root 21698 Jun 19 12:32 ../nvslurm-plugin-pyxis_24.11.5-0.21.0-1_amd64.deb
+#ls -la ../nvslurm-plugin-pyxis_24.11.5-0.23.0-1_amd64.deb
+#-rw-r--r-- 1 root root 21698 Jun 19 12:32 ../nvslurm-plugin-pyxis_24.11.5-0.23.0-1_amd64.deb
 ################################################################
 
 # Move deb files
