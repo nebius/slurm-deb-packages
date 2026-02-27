@@ -72,7 +72,7 @@ jobs:
         run: echo "PLATFORM_SAFE=${{ matrix.platform }}" | sed 's/\//-/g' >> "$GITHUB_ENV"
 
       - name: Upload DEB packages as artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: debs-${{ matrix.distribution }}-${{ matrix.slurm_version }}-${{ env.PLATFORM_SAFE }}
           path: slurm_packages_output/debs/*.deb

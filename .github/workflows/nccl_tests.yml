@@ -82,7 +82,7 @@ jobs:
         run: echo "PLATFORM_SAFE=${{ matrix.platform }}" | sed 's/\//-/g' >> "$GITHUB_ENV"
 
       - name: Upload NCCL tests tarball as artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: nccltests-${{ matrix.distribution }}-nccl_${{ matrix.nccl_tests_version }}-cuda_${{ matrix.build.cuda_version }}-${{ env.PLATFORM_SAFE }}
           path: nccl_tests_build_output/nccl-tests-perf-${{ matrix.arch }}.tar.gz
