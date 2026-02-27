@@ -116,7 +116,7 @@ jobs:
 
     steps:
       - name: Download all NCCL tests artifacts for this version set
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
           pattern: nccltests-${{ matrix.distribution }}-nccl_${{ matrix.nccl_tests_version }}-cuda_${{ matrix.cuda_version }}-*

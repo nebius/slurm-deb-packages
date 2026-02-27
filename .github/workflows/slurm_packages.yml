@@ -105,7 +105,7 @@ jobs:
 
     steps:
       - name: Download all DEB artifacts for this distro/version
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
           pattern: debs-${{ matrix.distribution }}-${{ matrix.slurm_version }}-*
