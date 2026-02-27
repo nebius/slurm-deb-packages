@@ -106,7 +106,7 @@ jobs:
 
     steps:
       - name: Download all DEB artifacts for this version set
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
           pattern: debs-${{ matrix.distribution }}-pyxis_${{ matrix.pyxis.version }}-slurm_${{ matrix.slurm_version }}-enroot_${{ matrix.enroot.version }}-*
