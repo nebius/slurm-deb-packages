@@ -69,7 +69,7 @@ jobs:
         run: echo "PLATFORM_SAFE=${{ matrix.platform }}" | sed 's/\//-/g' >> "$GITHUB_ENV"
 
       - name: Upload DEB packages as artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: debs-${{ matrix.distribution }}-pyxis_${{ matrix.pyxis.version }}-slurm_${{ matrix.slurm_version }}-enroot_${{ matrix.enroot.version }}-${{ env.PLATFORM_SAFE }}
           path: pyxis_build_output/debs/*.deb
