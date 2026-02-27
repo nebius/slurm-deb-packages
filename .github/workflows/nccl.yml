@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   build:
-    name: Build for nccl ${{ matrix.nccl_version }} / cuda ${{ matrix.cuda_version }}
+    name: Arch ${{ matrix.arch }} / nccl ${{ matrix.nccl_version }} / cuda ${{ matrix.cuda_version }}
     permissions:
       contents: read
     runs-on: ${{ matrix.runner }}

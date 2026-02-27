@@ -15,7 +15,7 @@ RUN apt-get update && \
 ARG NCCL_VERSION
 # Build binaries
 RUN cd /usr/src && \
-    git clone --branch v${NCCL_VERSION} --depth 1 https://github.com/NVIDIA/nccl.git && \
+    git clone --branch v${NCCL_VERSION}-1 --depth 1 https://github.com/NVIDIA/nccl.git && \
     cd nccl && \
     make pkg.debian.build && \
     ls -lah build/pkg/deb/
