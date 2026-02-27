@@ -1,0 +1,131 @@
+name: Build nccl
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build for nccl ${{ matrix.nccl_version }} / cuda ${{ matrix.cuda_version }}
+    permissions:
+      contents: read
+    runs-on: ${{ matrix.runner }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - nccl_version: 2.29.3
+            cuda_version: 13.0.2
+            distribution: ubuntu24.04
+            arch: amd64
+            platform: linux/amd64
+            runner: ubuntu-24.04
+          - nccl_version: 2.29.3
+            cuda_version: 13.0.2
+            distribution: ubuntu24.04
+            arch: arm64
+            platform: linux/arm64
+            runner: ubuntu-24.04-arm
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3.12.0
+
+      - name: Build docker image
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6.19.2
+        with:
+          file: nccl/Dockerfile
+          push: false
+          tags: nccl_builder:nccl_${{ matrix.nccl_version }}_cuda_${{ matrix.cuda_version }}_${{ matrix.distribution }}
+          platforms: ${{ matrix.platform }}
+          load: true
+          build-args: |
+            NCCL_VERSION=${{ matrix.nccl_version }}
+            CUDA_VERSION=${{ matrix.cuda_version }}
+
+      - name: Create output directory
+        run: mkdir -p output/debs
+
+      - name: Run Docker container and copy files
+        run: |
+          container_id=$(docker create nccl_builder:nccl_${{ matrix.nccl_version }}_cuda_${{ matrix.cuda_version }}_${{ matrix.distribution }})
+          docker start $container_id
+          docker cp $container_id:/usr/src/debs/. ./output/debs/
+          docker stop $container_id
+          docker rm $container_id
+
+      - name: Normalize platform for artifact names
+        run: echo "PLATFORM_SAFE=${{ matrix.platform }}" | sed 's/\//-/g' >> "$GITHUB_ENV"
+
+      - name: Upload DEB packages as artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: debs-nccl-${{ matrix.nccl_version }}-cuda-${{ matrix.cuda_version }}-${{ matrix.distribution }}-${{ env.PLATFORM_SAFE }}
+          path: output/debs/*.deb
+          if-no-files-found: error
+          retention-days: 7
+
+  release:
+    name: Release nccl ${{ matrix.nccl_version }} / cuda ${{ matrix.cuda_version }}/ ${{ matrix.distribution }}
+    needs: [build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - nccl_version: 2.29.3
+            cuda_version: 13.0.2
+            distribution: ubuntu24.04
+
+    concurrency:
+      group: release-nccl-${{ matrix.nccl_version }}-cuda-${{ matrix.cuda_version }}-${{ matrix.distribution }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Download all DEB artifacts for this version set
+        uses: actions/download-artifact@v7
+        with:
+          path: artifacts
+          pattern: debs-nccl-${{ matrix.nccl_version }}-cuda-${{ matrix.cuda_version }}-${{ matrix.distribution }}-*
+          merge-multiple: true
+
+      - name: Show downloaded debs
+        run: |
+          find artifacts -type f -name "*.deb" -print
+
+      - name: Check if release already exists
+        id: rel
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="nccl-${{ matrix.nccl_version }}-cuda-${{ matrix.cuda_version }}-${{ matrix.distribution }}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create GitHub Release and upload all DEBs
+        if: steps.rel.outputs.exists != 'true'
+        uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: nccl-${{ matrix.nccl_version }}-cuda-${{ matrix.cuda_version }}-${{ matrix.distribution }}
+          name: Nccl ${{ matrix.nccl_version }} cuda ${{ matrix.cuda_version }} ${{ matrix.distribution }}
+          body: Nccl ${{ matrix.nccl_version }} cuda ${{ matrix.cuda_version }} ${{ matrix.distribution }}
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: true
+          files: |
+            artifacts/**/*.deb
+
