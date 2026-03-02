@@ -92,7 +92,7 @@ jobs:
 
     steps:
       - name: Download all DEB artifacts for this version set
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
           pattern: debs-nccl-${{ matrix.nccl_version }}-cuda-${{ matrix.cuda_version }}-${{ matrix.distribution }}-*
