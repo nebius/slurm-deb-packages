@@ -64,7 +64,7 @@ jobs:
         run: echo "PLATFORM_SAFE=${{ matrix.platform }}" | sed 's/\//-/g' >> "$GITHUB_ENV"
 
       - name: Upload DEB packages as artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: debs-nccl-${{ matrix.nccl_version }}-cuda-${{ matrix.cuda_version }}-${{ matrix.distribution }}-${{ env.PLATFORM_SAFE }}
           path: output/debs/*.deb
