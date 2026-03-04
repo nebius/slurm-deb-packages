@@ -15,7 +15,7 @@ RUN apt-get update && \
 ARG NCCL_VERSION
 # Build binaries
 RUN cd /usr/src && \
-    git clone --branch v${NCCL_VERSION}-1 --depth 1 https://github.com/rdjjke/nccl && \
+    git clone --branch v${NCCL_VERSION} --depth 1 https://github.com/rdjjke/nccl && \
     cd nccl && \
     sed -i '1{s/\(+cuda\${cuda:Major}\.\${cuda:Minor}\))/\1+fix-init-cpu-affinity1)/}' pkg/debian/changelog.in && \
     make pkg.debian.build && \
