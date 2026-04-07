@@ -1,0 +1,59 @@
+name: &pkg libnccl-profiler-inspector
+
+arch: ${NCCL_ARCH}
+platform: linux
+
+version: ${NCCL_VERSION}
+version_schema: none
+release: ${NCCL_VERSION_RELEASE}
+section: libs
+
+vendor: Nebius
+maintainer: Dmitrii Starov <dstaroff@nebius.com>
+
+description: |-
+  NCCL Inspector Plugin.
+  The NCCL Inspector is a plugin for the NVIDIA Collective Communications
+  Library (NCCL) that provides detailed, per-communicator, per-collective
+  performance and metadata logging.
+  It is designed to help users analyze and debug NCCL collective operations
+  by generating structured JSON output for each operation.
+homepage: https://github.com/NVIDIA/nccl/tree/master/plugins/profiler/inspector
+license: Apache-2.0
+
+provides:
+  - *pkg
+depends:
+  - 'libnccl2 (= ${NCCL_VERSION})'
+suggests:
+  - 'libnccl-dev (= ${NCCL_VERSION})'
+
+contents:
+  - src: libnccl-profiler-inspector.so
+    dst: /usr/lib/${NCCL_ARCH}-linux-gnu/libnccl-profiler-inspector.so.${NCCL_VERSION}
+    expand: true
+
+  - src: libnccl-profiler-inspector.so.${NCCL_VERSION}
+    dst: /usr/lib/${NCCL_ARCH}-linux-gnu/libnccl-profiler-inspector.so.2
+    type: symlink
+    expand: true
+
+  - src: libnccl-profiler-inspector.so.2
+    dst: /usr/lib/${NCCL_ARCH}-linux-gnu/libnccl-profiler-inspector.so
+    type: symlink
+    expand: true
+
+  - src: copyright
+    dst: /usr/share/doc/libnccl-profiler-inspector/copyright
+
+  - src: README.md
+    dst: /usr/share/doc/libnccl-profiler-inspector/README.md
+
+  - src: ../../../LICENSE.txt
+    dst: /usr/share/doc/libnccl-profiler-inspector/LICENSE.txt
+
+  - src: ../../../ThirdPartyNotices.txt
+    dst: /usr/share/doc/libnccl-profiler-inspector/ThirdPartyNotices.txt
+
+  - src: ../../../README.md
+    dst: /usr/share/doc/libnccl-profiler-inspector/README-nccl.md
