@@ -1,4 +1,4 @@
-ARG CUDA_VERSION
+ARG CUDA_VERSION=13.0.2
 FROM cr.eu-north1.nebius.cloud/ml-containers/cuda:${CUDA_VERSION}-ubuntu24.04-20260227111638
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -11,8 +11,8 @@ RUN echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | tee /etc/apt/s
         build-essential \
         nfpm
 
-ARG NCCL_REPO_OWNER
-ARG NCCL_VERSION
+ARG NCCL_REPO_OWNER=NVIDIA
+ARG NCCL_VERSION=2.29.7-1
 
 # Build shared library
 RUN cd /usr/src && \
@@ -28,9 +28,9 @@ WORKDIR /usr/src/nccl/plugins/profiler/inspector
 RUN chmod +x copyright.sh && \
     ./copyright.sh
 
-ARG NCCL_VERSION_MAJOR
-ARG NCCL_VERSION_RELEASE
-ARG NCCL_ARCH
+ARG NCCL_VERSION_MAJOR=2
+ARG NCCL_VERSION_RELEASE=1
+ARG NCCL_ARCH=x86_64
 
 # Build deb package
 RUN mkdir out && \
