@@ -18,7 +18,7 @@ RUN cd /usr/src && \
     git clone https://github.com/NVIDIA/nccl.git && \
     cd nccl && \
     git checkout 0ef8037e65148a5e1837476becb6f376f151b3ba && \
-    sed -i '1{s/\(+cuda\${cuda:Major}\.\${cuda:Minor}\))/\0+custom1)/}' pkg/debian/changelog.in && \
+    sed -i '1{s/+cuda\${cuda:Major}\.\${cuda:Minor})/+cuda\${cuda:Major}.\${cuda:Minor}~custom1)/}' pkg/debian/changelog.in && \
     make pkg.debian.build && \
     ls -lah build/pkg/deb/
 
