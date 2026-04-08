@@ -19,14 +19,14 @@ RUN cd /usr/src && \
     git clone --branch v${NCCL_VERSION} --depth 1 https://github.com/${NCCL_REPO_OWNER}/nccl && \
     cd nccl/plugins/profiler/inspector && \
     make && \
-    ls -lah *.so \
+    ls -lah *.so
 
 COPY nccl-inspector/config/ /usr/src/nccl/plugins/profiler/inspector
 WORKDIR /usr/src/nccl/plugins/profiler/inspector
 
 # Build copyright file
 RUN chmod +x copyright.sh && \
-    ./copyright.sh \
+    ./copyright.sh
 
 ARG NCCL_VERSION_MAJOR
 ARG NCCL_VERSION_RELEASE
