@@ -16,9 +16,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        nccl_repo_owner: ['NVIDIA', 'rdjjke']
-        nccl_version: ['2.26.5-1', '2.29.7-1-fix-init-cpu-affinity']
-        cuda_version: ['12.9.0', '13.0.2']
+        nccl_repo_owner: ['rdjjke']
+        nccl_version: ['2.29.7-1-fix-init-cpu-affinity']
+        cuda_version: ['13.0.2']
         arch: ['amd64', 'arm64']
 
         include:
@@ -33,19 +33,6 @@ jobs:
             platform: 'linux/arm64'
             runner: 'ubuntu-24.04-arm'
             nccl_arch: 'aarch64'
-
-        exclude:
-          # 2.26 from NVIDIA, 2.29 fix from rdjjke
-          - nccl_repo_owner: 'NVIDIA'
-            nccl_version: '2.29.7-1-fix-init-cpu-affinity'
-          - nccl_repo_owner: 'rdjjke'
-            nccl_version: '2.26.5-1'
-
-          # 2.26 for CUDA 12.9, 2.29 for CUDA 13.0
-          - nccl_version: '2.26.5-1'
-            cuda_version: '13.0.2'
-          - nccl_version: '2.29.7-1-fix-init-cpu-affinity'
-            cuda_version: '12.9.0'
 
     steps:
       - name: Checkout repository
@@ -102,17 +89,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        nccl_version: [ '2.26.5-1', '2.29.7-1-fix-init-cpu-affinity' ]
-        cuda_version: [ '12.9.0', '13.0.2' ]
+        nccl_version: [ '2.29.7-1-fix-init-cpu-affinity' ]
+        cuda_version: [ '13.0.2' ]
         include:
           - distribution: 'ubuntu24.04'
           - nccl_version_release: '1'
-        exclude:
-          # 2.26 for CUDA 12.9, 2.29 for CUDA 13.0
-          - nccl_version: '2.26.5-1'
-            cuda_version: '13.0.2'
-          - nccl_version: '2.29.7-1-fix-init-cpu-affinity'
-            cuda_version: '12.9.0'
 
     concurrency:
       group: release-nccl-inspector-${{ matrix.nccl_version }}-cuda-${{ matrix.cuda_version }}-${{ matrix.distribution }}-${{ matrix.nccl_version_release }}
