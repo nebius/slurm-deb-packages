@@ -3,7 +3,7 @@ name: &pkg libnccl-profiler-inspector
 arch: ${NCCL_ARCH}
 platform: linux
 
-version: ${NCCL_VERSION}
+version: ${NCCL_VERSION}+cuda${NCCL_CUDA_VERSION}
 version_schema: none
 release: ${NCCL_VERSION_RELEASE}
 section: libs
@@ -24,9 +24,9 @@ license: Apache-2.0
 provides:
   - *pkg
 depends:
-  - 'libnccl2 (= ${NCCL_VERSION})'
+  - 'libnccl2 (= ${NCCL_VERSION}+cuda${NCCL_CUDA_VERSION})'
 suggests:
-  - 'libnccl-dev (= ${NCCL_VERSION})'
+  - 'libnccl-dev (= ${NCCL_VERSION}+cuda${NCCL_CUDA_VERSION})'
 
 contents:
   - src: libnccl-profiler-inspector.so
@@ -49,11 +49,8 @@ contents:
   - src: README.md
     dst: /usr/share/doc/libnccl-profiler-inspector/README.md
 
-  - src: ../../../LICENSE.txt
+  - src: LICENSE.txt
     dst: /usr/share/doc/libnccl-profiler-inspector/LICENSE.txt
 
-  - src: ../../../ThirdPartyNotices.txt
-    dst: /usr/share/doc/libnccl-profiler-inspector/ThirdPartyNotices.txt
-
-  - src: ../../../README.md
+  - src: README-nccl.md
     dst: /usr/share/doc/libnccl-profiler-inspector/README-nccl.md
