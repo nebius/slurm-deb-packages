@@ -140,10 +140,8 @@ jobs:
       - name: Run Docker container and copy files
         run: |
           container_id=$(docker create nccl_inspector_builder:nccl_${{ matrix.nccl_version }}_cuda_${{ matrix.cuda_version }}_${{ matrix.distribution }}_${{ matrix.nccl_version_release }})
-          docker start $container_id
-          docker cp $container_id:/usr/src/nccl-inspector/out/. ./output/debs/
-          docker stop $container_id
-          docker rm $container_id
+          docker cp ${container_id}:/debs/. ./output/debs/
+          docker rm ${container_id}
 
       - name: Normalize platform for artifact names
         run: echo "PLATFORM_SAFE=${{ matrix.platform }}" | sed 's/\//-/g' >> "$GITHUB_ENV"

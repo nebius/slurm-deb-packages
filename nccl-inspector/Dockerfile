@@ -1,5 +1,5 @@
 ARG CUDA_VERSION
-FROM cr.eu-north1.nebius.cloud/ml-containers/cuda:${CUDA_VERSION}-ubuntu24.04-20260227111638
+FROM cr.eu-north1.nebius.cloud/ml-containers/cuda:${CUDA_VERSION}-ubuntu24.04-20260227111638 AS builder
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -41,3 +41,7 @@ RUN chmod +x copyright.sh && \
 RUN mkdir out && \
     nfpm package -p deb -t out && \
     ls -lah ./out/*.deb
+
+FROM cr.eu-north1.nebius.cloud/soperator/busybox
+COPY --from=builder /usr/src/nccl-inspector/out /debs
+CMD ["true"]
