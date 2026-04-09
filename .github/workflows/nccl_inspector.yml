@@ -16,13 +16,19 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        nccl_repo_owner: ['rdjjke']
-        nccl_version: ['2.29.7-1-fix-init-cpu-affinity']
-        cuda_version: ['13.0.2']
+        nccl_version:
+          - '2.28.3-1'
+          - '2.28.7-1'
+          - '2.28.9-1'
+          - '2.29.2-1'
+          - '2.29.3-1'
+          - '2.29.7-1'
+        cuda_version: ['12.9.0', '13.0.2']
         arch: ['amd64', 'arm64']
 
         include:
           - distribution: 'ubuntu24.04'
+          - nccl_repo_owner: 'NVIDIA'
           - nccl_version_major: '2'
           - nccl_version_release: '1'
           - arch: 'amd64'
@@ -33,6 +39,67 @@ jobs:
             platform: 'linux/arm64'
             runner: 'ubuntu-24.04-arm'
             nccl_arch: 'aarch64'
+
+          - nccl_version: '2.28.3-1'
+            path_to_inspector: 'ext-profiler/inspector'
+          - nccl_version: '2.28.7-1'
+            path_to_inspector: 'ext-profiler/inspector'
+          - nccl_version: '2.28.9-1'
+            path_to_inspector: 'ext-profiler/inspector'
+          - nccl_version: '2.29.2-1'
+            path_to_inspector: 'ext-profiler/inspector'
+          - nccl_version: '2.29.3-1'
+            path_to_inspector: 'ext-profiler/inspector'
+          - nccl_version: '2.29.7-1'
+            path_to_inspector: 'plugins/profiler/inspector'
+
+          - nccl_version: '2.29.7-1-fix-init-cpu-affinity'
+            nccl_repo_owner: 'rdjjke'
+            cuda_version: '12.9.0'
+            distribution: 'ubuntu24.04'
+            nccl_version_major: '2'
+            nccl_version_release: '1'
+            arch: 'amd64'
+            platform: 'linux/amd64'
+            runner: 'ubuntu-24.04'
+            nccl_arch: 'x86_64'
+            path_to_inspector: 'plugins/profiler/inspector'
+
+          - nccl_version: '2.29.7-1-fix-init-cpu-affinity'
+            nccl_repo_owner: 'rdjjke'
+            cuda_version: '12.9.0'
+            distribution: 'ubuntu24.04'
+            nccl_version_major: '2'
+            nccl_version_release: '1'
+            arch: 'arm64'
+            platform: 'linux/arm64'
+            runner: 'ubuntu-24.04-arm'
+            nccl_arch: 'aarch64'
+            path_to_inspector: 'plugins/profiler/inspector'
+
+          - nccl_version: '2.29.7-1-fix-init-cpu-affinity'
+            nccl_repo_owner: 'rdjjke'
+            cuda_version: '13.0.2'
+            distribution: 'ubuntu24.04'
+            nccl_version_major: '2'
+            nccl_version_release: '1'
+            arch: 'amd64'
+            platform: 'linux/amd64'
+            runner: 'ubuntu-24.04'
+            nccl_arch: 'x86_64'
+            path_to_inspector: 'plugins/profiler/inspector'
+
+          - nccl_version: '2.29.7-1-fix-init-cpu-affinity'
+            nccl_repo_owner: 'rdjjke'
+            cuda_version: '13.0.2'
+            distribution: 'ubuntu24.04'
+            nccl_version_major: '2'
+            nccl_version_release: '1'
+            arch: 'arm64'
+            platform: 'linux/arm64'
+            runner: 'ubuntu-24.04-arm'
+            nccl_arch: 'aarch64'
+            path_to_inspector: 'plugins/profiler/inspector'
 
     steps:
       - name: Checkout repository
@@ -56,6 +123,7 @@ jobs:
             NCCL_VERSION_RELEASE=${{ matrix.nccl_version_release }}
             NCCL_ARCH=${{ matrix.nccl_arch }}
             CUDA_VERSION=${{ matrix.cuda_version }}
+            PATH_TO_INSPECTOR=${{ matrix.path_to_inspector }}
 
       - name: Create output directory
         run: mkdir -p output/debs
@@ -64,7 +132,7 @@ jobs:
         run: |
           container_id=$(docker create nccl_inspector_builder:nccl_${{ matrix.nccl_version }}_cuda_${{ matrix.cuda_version }}_${{ matrix.distribution }}_${{ matrix.nccl_version_release }})
           docker start $container_id
-          docker cp $container_id:/usr/src/debs/. ./output/debs/
+          docker cp $container_id:/usr/src/nccl-inspector/out/. ./output/debs/
           docker stop $container_id
           docker rm $container_id
 
@@ -77,6 +145,7 @@ jobs:
           name: debs-nccl-inspector-${{ matrix.nccl_version }}-cuda-${{ matrix.cuda_version }}-${{ matrix.distribution }}-${{ matrix.nccl_version_release }}-${{ env.PLATFORM_SAFE }}
           path: output/debs/*.deb
           if-no-files-found: error
+          overwrite: 'true'
           retention-days: 7
 
   release:
@@ -89,11 +158,40 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        nccl_version: [ '2.29.7-1-fix-init-cpu-affinity' ]
-        cuda_version: [ '13.0.2' ]
+        nccl_version:
+          - '2.28.3-1'
+          - '2.28.7-1'
+          - '2.28.9-1'
+          - '2.29.2-1'
+          - '2.29.3-1'
+          - '2.29.7-1'
+          - '2.29.7-1-fix-init-cpu-affinity'
+        cuda_version: ['12.9.0', '13.0.2']
         include:
           - distribution: 'ubuntu24.04'
           - nccl_version_release: '1'
+
+          - nccl_version: '2.28.3-1'
+            nccl_repo_owner: 'NVIDIA'
+            path_to_inspector: 'ext-profiler/inspector'
+          - nccl_version: '2.28.7-1'
+            nccl_repo_owner: 'NVIDIA'
+            path_to_inspector: 'ext-profiler/inspector'
+          - nccl_version: '2.28.9-1'
+            nccl_repo_owner: 'NVIDIA'
+            path_to_inspector: 'ext-profiler/inspector'
+          - nccl_version: '2.29.2-1'
+            nccl_repo_owner: 'NVIDIA'
+            path_to_inspector: 'ext-profiler/inspector'
+          - nccl_version: '2.29.3-1'
+            nccl_repo_owner: 'NVIDIA'
+            path_to_inspector: 'ext-profiler/inspector'
+          - nccl_version: '2.29.7-1'
+            nccl_repo_owner: 'NVIDIA'
+            path_to_inspector: 'plugins/profiler/inspector'
+          - nccl_version: '2.29.7-1-fix-init-cpu-affinity'
+            nccl_repo_owner: 'rdjjke'
+            path_to_inspector: 'plugins/profiler/inspector'
 
     concurrency:
       group: release-nccl-inspector-${{ matrix.nccl_version }}-cuda-${{ matrix.cuda_version }}-${{ matrix.distribution }}-${{ matrix.nccl_version_release }}
@@ -132,11 +230,11 @@ jobs:
           tag_name: nccl-inspector-${{ matrix.nccl_version }}-cuda-${{ matrix.cuda_version }}-${{ matrix.distribution }}-${{ matrix.nccl_version_release }}
           name: NCCL Inspector v${{ matrix.nccl_version }}+cuda${{ matrix.cuda_version }}_${{ matrix.distribution }}-${{ matrix.nccl_version_release }}
           body: |
-            [NCCL Inspector plugin](https://github.com/NVIDIA/nccl/tree/master/plugins/profiler/inspector)
+            [NCCL Inspector plugin](https://github.com/${{ matrix.nccl_repo_owner }}/nccl/tree/v${{ matrix.nccl_version }}/${{ matrix.path_to_inspector }} }})
             
             | NCCL version | CUDA version | Distribution | Deb version |
             | :--- | :--- | :---: | ---: |
-            | `${{ matrix.nccl_version }}` | `${{ matrix.cuda_version }}` | `${{ matrix.distribution }}` | `${{ matrix.nccl_version_release }}` |
+            | [`${{ matrix.nccl_version }}`](https://github.com/${{ matrix.nccl_repo_owner }}/nccl/tree/v${{ matrix.nccl_version }}) | `${{ matrix.cuda_version }}` | `${{ matrix.distribution }}` | `${{ matrix.nccl_version_release }}` |
           draft: false
           prerelease: false
           fail_on_unmatched_files: true
