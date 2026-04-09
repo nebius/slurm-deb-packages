@@ -28,7 +28,7 @@ RUN cd /usr/src && \
     make && \
     ls -lah *.so && \
     mv *.so /usr/src/nccl-inspector && \
-    cp README.md /usr/src/nccl/LICENSE.txt /usr/src/nccl/ThirdPartyNotices.txt /usr/src/nccl-inspector/ && \
+    cp README.md /usr/src/nccl/LICENSE.txt /usr/src/nccl-inspector/ && \
     cp /usr/src/nccl/README.md /usr/src/nccl-inspector/README-nccl.md
 
 WORKDIR /usr/src/nccl-inspector

@@ -52,8 +52,5 @@ contents:
   - src: LICENSE.txt
     dst: /usr/share/doc/libnccl-profiler-inspector/LICENSE.txt
 
-  - src: ThirdPartyNotices.txt
-    dst: /usr/share/doc/libnccl-profiler-inspector/ThirdPartyNotices.txt
-
   - src: README-nccl.md
     dst: /usr/share/doc/libnccl-profiler-inspector/README-nccl.md
