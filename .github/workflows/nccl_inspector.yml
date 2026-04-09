@@ -39,6 +39,10 @@ jobs:
             platform: 'linux/arm64'
             runner: 'ubuntu-24.04-arm'
             nccl_arch: 'aarch64'
+          - cuda_version: '12.9.0'
+            nccl_cuda_version: '12.9'
+          - cuda_version: '13.0.2'
+            nccl_cuda_version: '13.0'
 
           - nccl_version: '2.28.3-1'
             path_to_inspector: 'ext-profiler/inspector'
@@ -56,6 +60,7 @@ jobs:
           - nccl_version: '2.29.7-1-fix-init-cpu-affinity'
             nccl_repo_owner: 'rdjjke'
             cuda_version: '12.9.0'
+            nccl_cuda_version: '12.9'
             distribution: 'ubuntu24.04'
             nccl_version_major: '2'
             nccl_version_release: '1'
@@ -68,6 +73,7 @@ jobs:
           - nccl_version: '2.29.7-1-fix-init-cpu-affinity'
             nccl_repo_owner: 'rdjjke'
             cuda_version: '12.9.0'
+            nccl_cuda_version: '12.9'
             distribution: 'ubuntu24.04'
             nccl_version_major: '2'
             nccl_version_release: '1'
@@ -80,6 +86,7 @@ jobs:
           - nccl_version: '2.29.7-1-fix-init-cpu-affinity'
             nccl_repo_owner: 'rdjjke'
             cuda_version: '13.0.2'
+            nccl_cuda_version: '13.0'
             distribution: 'ubuntu24.04'
             nccl_version_major: '2'
             nccl_version_release: '1'
@@ -92,6 +99,7 @@ jobs:
           - nccl_version: '2.29.7-1-fix-init-cpu-affinity'
             nccl_repo_owner: 'rdjjke'
             cuda_version: '13.0.2'
+            nccl_cuda_version: '13.0'
             distribution: 'ubuntu24.04'
             nccl_version_major: '2'
             nccl_version_release: '1'
@@ -122,6 +130,7 @@ jobs:
             NCCL_VERSION_MAJOR=${{ matrix.nccl_version_major }}
             NCCL_VERSION_RELEASE=${{ matrix.nccl_version_release }}
             NCCL_ARCH=${{ matrix.nccl_arch }}
+            NCCL_CUDA_VERSION=${{ matrix.nccl_cuda_version }}
             CUDA_VERSION=${{ matrix.cuda_version }}
             PATH_TO_INSPECTOR=${{ matrix.path_to_inspector }}
 
@@ -142,7 +151,7 @@ jobs:
       - name: Upload DEB packages as artifact
         uses: actions/upload-artifact@v7
         with:
-          name: debs-nccl-inspector-${{ matrix.nccl_version }}-cuda-${{ matrix.cuda_version }}-${{ matrix.distribution }}-${{ matrix.nccl_version_release }}-${{ env.PLATFORM_SAFE }}
+          name: debs-nccl-inspector-${{ matrix.nccl_version }}-cuda-${{ matrix.nccl_cuda_version }}-${{ matrix.distribution }}-${{ matrix.nccl_version_release }}-${{ env.PLATFORM_SAFE }}
           path: output/debs/*.deb
           if-no-files-found: error
           overwrite: 'true'
@@ -166,7 +175,7 @@ jobs:
           - '2.29.3-1'
           - '2.29.7-1'
           - '2.29.7-1-fix-init-cpu-affinity'
-        cuda_version: ['12.9.0', '13.0.2']
+        cuda_version: ['12.9', '13.0']
         include:
           - distribution: 'ubuntu24.04'
           - nccl_version_release: '1'
@@ -228,7 +237,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: nccl-inspector-${{ matrix.nccl_version }}-cuda-${{ matrix.cuda_version }}-${{ matrix.distribution }}-${{ matrix.nccl_version_release }}
-          name: NCCL Inspector v${{ matrix.nccl_version }}+cuda${{ matrix.cuda_version }}_${{ matrix.distribution }}-${{ matrix.nccl_version_release }}
+          name: NCCL Inspector v${{ matrix.nccl_version }}+cuda${{ matrix.cuda_version }}-${{ matrix.nccl_version_release }}_${{ matrix.distribution }}
           body: |
             [NCCL Inspector plugin](https://github.com/${{ matrix.nccl_repo_owner }}/nccl/tree/v${{ matrix.nccl_version }}/${{ matrix.path_to_inspector }} }})
             
