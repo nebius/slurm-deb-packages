@@ -1,4 +1,4 @@
-ARG CUDA_VERSION=13.0.2
+ARG CUDA_VERSION
 FROM cr.eu-north1.nebius.cloud/ml-containers/cuda:${CUDA_VERSION}-ubuntu24.04-20260227111638
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -11,11 +11,11 @@ RUN echo 'deb [trusted=yes] https://repo.goreleaser.com/apt/ /' | tee /etc/apt/s
         build-essential \
         nfpm
 
-ARG NCCL_REPO_OWNER=NVIDIA
-ARG NCCL_VERSION=2.29.7-1
-ARG NCCL_VERSION_MAJOR=2
-ARG NCCL_VERSION_RELEASE=1
-ARG NCCL_ARCH=x86_64
+ARG NCCL_REPO_OWNER
+ARG NCCL_VERSION
+ARG NCCL_VERSION_MAJOR
+ARG NCCL_VERSION_RELEASE
+ARG NCCL_ARCH
 ARG PATH_TO_INSPECTOR
 
 COPY nccl-inspector/config/ /usr/src/nccl-inspector
