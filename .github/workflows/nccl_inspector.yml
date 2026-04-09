@@ -237,7 +237,7 @@ jobs:
           tag_name: nccl-inspector-${{ matrix.nccl_version }}-cuda-${{ matrix.cuda_version }}-${{ matrix.distribution }}-${{ matrix.nccl_version_release }}
           name: NCCL Inspector v${{ matrix.nccl_version }}+cuda${{ matrix.cuda_version }}-${{ matrix.nccl_version_release }}_${{ matrix.distribution }}
           body: |
-            [NCCL Inspector plugin](https://github.com/${{ matrix.nccl_repo_owner }}/nccl/tree/v${{ matrix.nccl_version }}/${{ matrix.path_to_inspector }} }})
+            [NCCL Inspector plugin](https://github.com/${{ matrix.nccl_repo_owner }}/nccl/tree/v${{ matrix.nccl_version }}/${{ matrix.path_to_inspector }})
             
             | NCCL version | CUDA version | Distribution | Deb version |
             | :--- | :--- | :---: | ---: |
