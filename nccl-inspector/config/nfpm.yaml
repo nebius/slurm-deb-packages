@@ -1,6 +1,6 @@
 name: &pkg libnccl-profiler-inspector
 
-arch: ${NCCL_ARCH}
+arch: ${ARCH}
 platform: linux
 
 version: ${NCCL_VERSION}+cuda${NCCL_CUDA_VERSION}
@@ -30,16 +30,16 @@ suggests:
 
 contents:
   - src: libnccl-profiler-inspector.so
-    dst: /usr/lib/${NCCL_ARCH}-linux-gnu/libnccl-profiler-inspector.so.${NCCL_VERSION}
+    dst: /usr/lib/${LIB_ARCH}-linux-gnu/libnccl-profiler-inspector.so.${NCCL_VERSION}
     expand: true
 
   - src: libnccl-profiler-inspector.so.${NCCL_VERSION}
-    dst: /usr/lib/${NCCL_ARCH}-linux-gnu/libnccl-profiler-inspector.so.2
+    dst: /usr/lib/${LIB_ARCH}-linux-gnu/libnccl-profiler-inspector.so.2
     type: symlink
     expand: true
 
   - src: libnccl-profiler-inspector.so.2
-    dst: /usr/lib/${NCCL_ARCH}-linux-gnu/libnccl-profiler-inspector.so
+    dst: /usr/lib/${LIB_ARCH}-linux-gnu/libnccl-profiler-inspector.so
     type: symlink
     expand: true
 

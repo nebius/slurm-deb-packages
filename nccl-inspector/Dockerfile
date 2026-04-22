@@ -15,16 +15,17 @@ ARG NCCL_REPO_OWNER
 ARG NCCL_VERSION
 ARG NCCL_VERSION_MAJOR
 ARG NCCL_VERSION_RELEASE
-ARG NCCL_ARCH
 ARG NCCL_CUDA_VERSION
-ARG PATH_TO_INSPECTOR
+ARG NCCL_PATH_TO_INSPECTOR
+ARG ARCH
+ARG LIB_ARCH
 
 COPY nccl-inspector/config/ /usr/src/nccl-inspector
 
 # Build shared library
 RUN cd /usr/src && \
     git clone --branch v${NCCL_VERSION} --depth 1 https://github.com/${NCCL_REPO_OWNER}/nccl && \
-    cd nccl/${PATH_TO_INSPECTOR} && \
+    cd nccl/${NCCL_PATH_TO_INSPECTOR} && \
     make && \
     ls -lah *.so && \
     mv *.so /usr/src/nccl-inspector && \
@@ -43,5 +44,5 @@ RUN mkdir out && \
     ls -lah ./out/*.deb
 
 FROM cr.eu-north1.nebius.cloud/soperator/busybox
-COPY --from=builder /usr/src/nccl-inspector/out /debs
+COPY --from=builder /usr/src/nccl-inspector/out /artifacts
 CMD ["true"]
