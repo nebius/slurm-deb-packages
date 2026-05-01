@@ -15,17 +15,16 @@ RUN apt-get update && \
 ARG NCCL_VERSION
 # Build packages
 RUN cd /usr/src && \
-    git clone --branch v${NCCL_VERSION} --depth 1 https://github.com/rdjjke/nccl && \
+    git clone --branch v${NCCL_VERSION} --depth 1 https://github.com/NVIDIA/nccl.git && \
     cd nccl && \
-    sed -i '1{s/\(+cuda\${cuda:Major}\.\${cuda:Minor}\))/\1+fix-init-cpu-affinity1)/}' pkg/debian/changelog.in && \
     make pkg.debian.build && \
     ls -lah build/pkg/deb/
 
 ################################################################
 # RESULT
 ################################################################
-# libnccl2_2.29.7-1+cuda13.0_amd64.deb
-# libnccl-dev_2.29.7-1+cuda13.0_amd64.deb
+# libnccl2_2.30.4-1+cuda13.0_amd64.deb
+# libnccl-dev_2.30.4-1-1+cuda13.0_amd64.deb
 
 # Move deb files
 RUN mkdir /usr/src/debs && \
