@@ -17,12 +17,11 @@ jobs:
       fail-fast: false
       matrix:
         arch: ['amd64', 'arm64']
-        cuda_version: ['12.9.0', '13.0.2']
-        nccl_version: ['2.30.3-1']
+        cuda_version: ['13.0.2']
+        nccl_version: ['2.30.4-1']
+        distribution: [ 'ubuntu24.04' ]
 
         include:
-          - distribution: 'ubuntu24.04'
-
           - arch: 'amd64'
             platform: 'linux/amd64'
             runner: 'ubuntu-24.04'
@@ -32,8 +31,6 @@ jobs:
             runner: 'ubuntu-24.04-arm'
             lib_arch: 'aarch64'
 
-          - cuda_version: '12.9.0'
-            nccl_cuda_version: '12.9'
           - cuda_version: '13.0.2'
             nccl_cuda_version: '13.0'
 
@@ -99,8 +96,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        cuda_version: ['12.9', '13.0']
-        nccl_version: ['2.30.3-1']
+        cuda_version: [ '13.0' ]
+        nccl_version: [ '2.30.4-1' ]
         include:
           - distribution: 'ubuntu24.04'
           - nccl_repo_owner: 'NVIDIA'
