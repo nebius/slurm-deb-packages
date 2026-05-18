@@ -16,17 +16,16 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        arch: [ 'amd64', 'arm64' ]
+        cuda_version: [ '13.0.2' ]
+        nccl_version: [ '2.30.4-1' ]
+        distribution: [ 'ubuntu24.04' ]
+
         include:
-          - nccl_version: 2.30.4-1
-            cuda_version: 13.0.2
-            distribution: ubuntu24.04
-            arch: amd64
+          - arch: amd64
             platform: linux/amd64
             runner: ubuntu-24.04
-          - nccl_version: 2.30.4-1
-            cuda_version: 13.0.2
-            distribution: ubuntu24.04
-            arch: arm64
+          - arch: arm64
             platform: linux/arm64
             runner: ubuntu-24.04-arm
 
@@ -128,4 +127,3 @@ jobs:
           fail_on_unmatched_files: true
           files: |
             artifacts/**/*.deb
-
