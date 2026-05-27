@@ -22,7 +22,7 @@ jobs:
         enroot:
           - version: 4.1.2
         pyxis:
-          - version: 0.23.0
+          - version: 0.24.0
         distribution:
           - ubuntu24.04
         platform:
@@ -96,7 +96,7 @@ jobs:
         enroot:
           - version: 4.1.2
         pyxis:
-          - version: 0.23.0
+          - version: 0.24.0
         distribution:
           - ubuntu24.04
 
