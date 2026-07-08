@@ -23,8 +23,8 @@ RUN cd /usr/src && \
 ################################################################
 # RESULT
 ################################################################
-# libnccl2_2.30.4-1+cuda13.0_amd64.deb
-# libnccl-dev_2.30.4-1-1+cuda13.0_amd64.deb
+# libnccl2_2.30.7-1+cuda13.0_amd64.deb
+# libnccl-dev_2.30.7-1-1+cuda13.0_amd64.deb
 
 # Move deb files
 RUN mkdir /usr/src/debs && \
