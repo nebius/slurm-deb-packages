@@ -18,7 +18,7 @@ jobs:
       matrix:
         arch: ['amd64', 'arm64']
         cuda_version: ['13.0.2']
-        nccl_version: ['2.30.4-1']
+        nccl_version: ['2.30.7-1']
         distribution: [ 'ubuntu24.04' ]
 
         include:
@@ -97,7 +97,7 @@ jobs:
       fail-fast: false
       matrix:
         cuda_version: [ '13.0' ]
-        nccl_version: [ '2.30.4-1' ]
+        nccl_version: [ '2.30.7-1' ]
         include:
           - distribution: 'ubuntu24.04'
           - nccl_repo_owner: 'NVIDIA'
