@@ -1,9 +1,9 @@
 ARG CUDA_VERSION
 FROM cr.eu-north1.nebius.cloud/ml-containers/cuda:${CUDA_VERSION}-ubuntu24.04-20260220145309
 
-ARG OPENMPI_VERSION=4.1.7a1
-ARG OPENMPI_SUBVERSION=1.2404066
-ARG OFED_VERSION=24.04-0.7.0.0
+ARG OPENMPI_VERSION=4.1.9a1
+ARG OPENMPI_SUBVERSION=1.20250722.92f9fca4eb.2507097
+ARG MELLANOX_REPO_URL=https://linux.mellanox.com/public/repo/doca/3.1.0
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -19,9 +19,14 @@ RUN apt-get update && \
         libpmix-dev
 
 # Install Openmpi
-RUN cd /etc/apt/sources.list.d && \
-    wget https://linux.mellanox.com/public/repo/mlnx_ofed/${OFED_VERSION}/ubuntu24.04/mellanox_mlnx_ofed.list && \
-    wget -qO - https://www.mellanox.com/downloads/ofed/RPM-GPG-KEY-Mellanox | apt-key add - && \
+RUN ARCH="$(dpkg --print-architecture)" && \
+    case "$ARCH" in \
+      amd64) MLNX_ARCH=x86_64 ;; \
+      arm64) MLNX_ARCH=arm64 ;; \
+      *) echo "Unsupported architecture: $ARCH" && exit 1 ;; \
+    esac && \
+    echo "deb ${MELLANOX_REPO_URL}/ubuntu24.04/${MLNX_ARCH} ./" > /etc/apt/sources.list.d/mellanox_doca.list && \
+    wget -qO - https://linux.mellanox.com/public/repo/doca/GPG-KEY-Mellanox.pub | apt-key add - && \
     apt update && \
     apt install openmpi=${OPENMPI_VERSION}-${OPENMPI_SUBVERSION}
 
@@ -66,4 +71,3 @@ RUN cd /usr/src && \
 # Create tar.gz archive with NCCL-tests binaries
 RUN cd /usr/src/nccl-tests/build && \
     tar -czvf nccl-tests-perf-$(uname -m).tar.gz *_perf*
-
