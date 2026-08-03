@@ -1,0 +1,443 @@
+name: Slurm ATF vanilla baseline
+
+on:
+  workflow_dispatch:
+    inputs:
+      manifest_path:
+        description: Pinned release manifest in this repository
+        required: true
+        default: slurm-packages/releases/26.05.2.json
+        type: string
+      profile_env_var:
+        description: Name of the GitHub variable containing the Nebius ATF profile YAML
+        required: false
+        default: ""
+        type: string
+      nebius_cli_profile:
+        description: Profile name inside NEBIUS_CLI_CONFIG
+        required: true
+        default: default
+        type: string
+      keep_vm_on_failure:
+        description: Keep the VM after a failed run for manual SSH debugging
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: slurm-atf-baseline-${{ inputs.manifest_path }}
+  cancel-in-progress: false
+
+jobs:
+  baseline:
+    name: Vanilla baseline / ${{ inputs.manifest_path }}
+    outputs:
+      baseline_key: ${{ steps.metadata.outputs.baseline_key }}
+      release_version: ${{ steps.metadata.outputs.release_version }}
+    runs-on: ubuntu-24.04
+    environment: e2e
+    timeout-minutes: 1440
+    env:
+      ATF_CLOUD_PROFILE: ${{ vars[inputs.profile_env_var || vars.PROFILE_ENV_VAR] }}
+      NEBIUS_CLI_VERSION: 0.12.253
+      NEBIUS_CLI_PROFILE: ${{ inputs.nebius_cli_profile }}
+      NEBIUS_VM_NAME: slurm-atf-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - name: Checkout infrastructure and release manifest
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Install yq
+        uses: frenck/action-setup-yq@c4b5be8b4a215c536a41d436757d9feb92836d4f # v1.0.2
+        with:
+          version: v4.44.6
+
+      - name: Validate release pins
+        run: |
+          python3 slurm-atf/ci/manifest.py validate \
+            "${{ inputs.manifest_path }}" >/dev/null
+
+      - name: Resolve Nebius VM profile
+        env:
+          PROFILE_ENV_VAR: ${{ inputs.profile_env_var || vars.PROFILE_ENV_VAR }}
+        run: |
+          if [[ -z "${ATF_CLOUD_PROFILE}" ]]; then
+            echo "::error::Selected Nebius ATF profile variable is empty"
+            exit 1
+          fi
+          [[ "${NEBIUS_CLI_PROFILE}" =~ ^[a-zA-Z0-9][a-zA-Z0-9._-]*$ ]]
+
+          value() {
+            yq -er "$1" <<<"${ATF_CLOUD_PROFILE}"
+          }
+          emit() {
+            local name="$1"
+            local data="$2"
+            [[ -n "${data}" && "${data}" != *$'\n'* ]]
+            printf '%s=%s\n' "${name}" "${data}" >>"${GITHUB_ENV}"
+          }
+
+          project_id="$(value '.nebius_project_id')"
+          subnet_id="$(value '.slurm_atf.subnet_id')"
+          image_id="$(value '.slurm_atf.image_id')"
+          platform="$(value '.slurm_atf.platform')"
+          preset="$(value '.slurm_atf.preset')"
+          boot_disk_gib="$(value '.slurm_atf.boot_disk_gib // 512')"
+          boot_disk_type="$(value '.slurm_atf.boot_disk_type // "network_ssd"')"
+          ssh_user="$(value '.slurm_atf.ssh_user // "slurm-atf-ci"')"
+          security_group_id="$(
+            yq -r '.slurm_atf.security_group_id // ""' \
+              <<<"${ATF_CLOUD_PROFILE}"
+          )"
+
+          [[ "${boot_disk_gib}" =~ ^[1-9][0-9]*$ ]]
+          [[ "${ssh_user}" =~ ^[a-z_][a-z0-9_-]{0,31}$ ]]
+
+          emit NEBIUS_PROJECT_ID "${project_id}"
+          emit NEBIUS_SUBNET_ID "${subnet_id}"
+          emit NEBIUS_VM_IMAGE_ID "${image_id}"
+          emit NEBIUS_VM_PLATFORM "${platform}"
+          emit NEBIUS_VM_PRESET "${preset}"
+          emit NEBIUS_VM_BOOT_DISK_GIB "${boot_disk_gib}"
+          emit NEBIUS_VM_BOOT_DISK_TYPE "${boot_disk_type}"
+          [[ "${security_group_id}" != *$'\n'* ]]
+          printf 'NEBIUS_SECURITY_GROUP_ID=%s\n' "${security_group_id}" \
+            >>"${GITHUB_ENV}"
+          emit SLURM_ATF_SSH_USER "${ssh_user}"
+          emit SLURM_ATF_VM_SHAPE \
+            "${platform}/${preset}/${boot_disk_gib}GiB-${boot_disk_type}"
+
+          mkdir -p atf-result
+          {
+            echo "### Nebius ATF VM"
+            echo
+            echo "- GitHub profile variable: \`${PROFILE_ENV_VAR}\`"
+            echo "- Nebius CLI profile: \`${NEBIUS_CLI_PROFILE}\`"
+            echo "- Project: \`${project_id}\`"
+            echo "- VM name: \`${NEBIUS_VM_NAME}\`"
+            echo "- Image: \`${image_id}\`"
+            echo "- Shape: \`${platform}/${preset}\`"
+            echo "- Disk: \`${boot_disk_gib} GiB ${boot_disk_type}\`"
+          } >>"${GITHUB_STEP_SUMMARY}"
+
+      - name: Install Nebius CLI
+        env:
+          NEBIUS_INSTALL_FOLDER: ${{ github.workspace }}/bin
+        run: |
+          mkdir -p "${NEBIUS_INSTALL_FOLDER}"
+          curl -sSL https://storage.eu-north1.nebius.cloud/cli/install.sh | bash
+          echo "${NEBIUS_INSTALL_FOLDER}" >>"${GITHUB_PATH}"
+
+      - name: Configure selected Nebius CLI profile
+        env:
+          NEBIUS_CLI_CONFIG: ${{ vars.NEBIUS_CLI_CONFIG }}
+          NEBIUS_PRIVATE_KEY: ${{ secrets.NEBIUS_PRIVATE_KEY }}
+        run: |
+          test -n "${NEBIUS_CLI_CONFIG}"
+          test -n "${NEBIUS_PRIVATE_KEY}"
+          mkdir -p "${HOME}/.nebius"
+          printf '%s\n' "${NEBIUS_CLI_CONFIG}" >"${HOME}/.nebius/config.yaml"
+          yq -e '.profiles[strenv(NEBIUS_CLI_PROFILE)] != null' \
+            "${HOME}/.nebius/config.yaml" >/dev/null
+          yq -i \
+            '.profiles[strenv(NEBIUS_CLI_PROFILE)]["private-key"] = strenv(NEBIUS_PRIVATE_KEY)' \
+            "${HOME}/.nebius/config.yaml"
+          chmod 600 "${HOME}/.nebius/config.yaml"
+          nebius profile list
+          nebius version --full | tee atf-result/nebius-cli-version.txt
+
+      - name: Prepare SSH identity and derive its public key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SLURM_ATF_SSH_PRIVATE_KEY }}
+        run: |
+          test -n "${SSH_PRIVATE_KEY}"
+          private_key_file="${RUNNER_TEMP}/slurm-atf-ssh-key"
+          public_key_file="${RUNNER_TEMP}/slurm-atf-ssh-key.pub"
+          known_hosts_file="${RUNNER_TEMP}/slurm-atf-known-hosts"
+          printf '%s\n' "${SSH_PRIVATE_KEY}" | tr -d '\r' >"${private_key_file}"
+          chmod 600 "${private_key_file}"
+          ssh-keygen -y -P "" -f "${private_key_file}" >"${public_key_file}"
+          touch "${known_hosts_file}"
+          chmod 600 "${known_hosts_file}"
+          {
+            echo "SLURM_ATF_SSH_PRIVATE_KEY_FILE=${private_key_file}"
+            echo "SLURM_ATF_SSH_PUBLIC_KEY_FILE=${public_key_file}"
+            echo "SLURM_ATF_SSH_KNOWN_HOSTS_FILE=${known_hosts_file}"
+          } >>"${GITHUB_ENV}"
+
+      - id: create_vm
+        name: Create disposable Nebius VM
+        run: |
+          instance_json="$(slurm-atf/cloud/nebius/create-vm.sh)"
+          vm_id="$(jq -er '.metadata.id' <<<"${instance_json}")"
+          echo "NEBIUS_VM_ID=${vm_id}" >>"${GITHUB_ENV}"
+          echo "vm_id=${vm_id}" >>"${GITHUB_OUTPUT}"
+          jq . <<<"${instance_json}" >atf-result/nebius-instance-created.json
+
+      - id: wait_vm
+        name: Wait for cloud-init and SSH
+        run: |
+          public_ip="$(slurm-atf/cloud/nebius/wait-for-ssh.sh)"
+          echo "NEBIUS_VM_PUBLIC_IP=${public_ip}" >>"${GITHUB_ENV}"
+          echo "public_ip=${public_ip}" >>"${GITHUB_OUTPUT}"
+          {
+            echo "- VM ID: \`${NEBIUS_VM_ID}\`"
+            echo "- Public IP: \`${public_ip}\`"
+            echo "- SSH: \`ssh -i <matching-private-key> ${SLURM_ATF_SSH_USER}@${public_ip}\`"
+          } >>"${GITHUB_STEP_SUMMARY}"
+
+      - name: Copy the exact workflow checkout to the VM
+        run: |
+          remote_repo="/home/${SLURM_ATF_SSH_USER}/slurm-deb-packages"
+          tar --exclude='./atf-result' -czf - . |
+            ssh \
+              -i "${SLURM_ATF_SSH_PRIVATE_KEY_FILE}" \
+              -o BatchMode=yes \
+              -o ServerAliveInterval=30 \
+              -o ServerAliveCountMax=6 \
+              -o StrictHostKeyChecking=yes \
+              -o "UserKnownHostsFile=${SLURM_ATF_SSH_KNOWN_HOSTS_FILE}" \
+              "${SLURM_ATF_SSH_USER}@${NEBIUS_VM_PUBLIC_IP}" \
+              "mkdir -p '${remote_repo}' && tar -xzf - -C '${remote_repo}'"
+
+      - id: remote_test
+        name: Build vanilla release and run the common suite over SSH
+        continue-on-error: true
+        env:
+          MANIFEST_PATH: ${{ inputs.manifest_path }}
+          SLURM_ATF_RUN_ID: baseline-${{ github.run_id }}-${{ github.run_attempt }}
+        run: |
+          remote_repo="/home/${SLURM_ATF_SSH_USER}/slurm-deb-packages"
+          ssh \
+            -i "${SLURM_ATF_SSH_PRIVATE_KEY_FILE}" \
+            -o BatchMode=yes \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=20 \
+            -o StrictHostKeyChecking=yes \
+            -o "UserKnownHostsFile=${SLURM_ATF_SSH_KNOWN_HOSTS_FILE}" \
+            "${SLURM_ATF_SSH_USER}@${NEBIUS_VM_PUBLIC_IP}" \
+            bash -s -- \
+              "${remote_repo}" \
+              "${MANIFEST_PATH}" \
+              "${NEBIUS_VM_IMAGE_ID}" \
+              "${SLURM_ATF_VM_SHAPE}" \
+              "${SLURM_ATF_RUN_ID}" <<'REMOTE'
+          set -euo pipefail
+          repo="$1"
+          manifest_path="$2"
+          image_id="$3"
+          vm_shape="$4"
+          run_id="$5"
+
+          cd "${repo}"
+          sudo test -f /etc/slurm-atf-disposable
+          test "$(findmnt -n -o FSTYPE /)" != overlay
+          set +e
+          env \
+            SLURM_RELEASE_MANIFEST="${repo}/${manifest_path}" \
+            SLURM_ATF_CI_OUTPUT="${repo}/atf-result" \
+            SLURM_ATF_RUN_ID="${run_id}" \
+            SLURM_ATF_VM_IMAGE_ID="${image_id}" \
+            SLURM_ATF_VM_SHAPE="${vm_shape}" \
+            slurm-atf/ci/run-baseline.sh \
+            2>&1 | tee "${HOME}/slurm-atf-workflow.log"
+          status=${PIPESTATUS[0]}
+          set -e
+          exit "${status}"
+          REMOTE
+
+      - if: always() && steps.create_vm.outputs.vm_id != ''
+        name: Collect remote evidence and VM state
+        continue-on-error: true
+        run: |
+          mkdir -p atf-result
+          remote_repo="/home/${SLURM_ATF_SSH_USER}/slurm-deb-packages"
+          scp \
+            -i "${SLURM_ATF_SSH_PRIVATE_KEY_FILE}" \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o "UserKnownHostsFile=${SLURM_ATF_SSH_KNOWN_HOSTS_FILE}" \
+            -r "${SLURM_ATF_SSH_USER}@${NEBIUS_VM_PUBLIC_IP}:${remote_repo}/atf-result/." \
+            atf-result/ || true
+          scp \
+            -i "${SLURM_ATF_SSH_PRIVATE_KEY_FILE}" \
+            -o BatchMode=yes \
+            -o StrictHostKeyChecking=yes \
+            -o "UserKnownHostsFile=${SLURM_ATF_SSH_KNOWN_HOSTS_FILE}" \
+            "${SLURM_ATF_SSH_USER}@${NEBIUS_VM_PUBLIC_IP}:slurm-atf-workflow.log" \
+            atf-result/orchestration.log || true
+          nebius compute instance get \
+            --profile "${NEBIUS_CLI_PROFILE}" \
+            --format json \
+            --id "${NEBIUS_VM_ID}" >atf-result/nebius-instance-final.json || true
+
+      - id: metadata
+        name: Validate baseline publication metadata
+        run: |
+          baseline_key="$(<atf-result/baseline-key)"
+          json_key="$(jq -er '.baseline_key' atf-result/baseline-key.json)"
+          release_version="$(jq -er '.release.version' atf-result/release-manifest.json)"
+
+          [[ "${baseline_key}" =~ ^[0-9a-f]{64}$ ]]
+          [[ "${release_version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          test "${baseline_key}" = "${json_key}"
+
+          echo "baseline_key=${baseline_key}" >>"${GITHUB_OUTPUT}"
+          echo "release_version=${release_version}" >>"${GITHUB_OUTPUT}"
+
+      - if: always() && steps.create_vm.outcome != 'skipped'
+        name: Delete disposable Nebius VM
+        env:
+          KEEP_VM_ON_FAILURE: ${{ inputs.keep_vm_on_failure }}
+          REMOTE_TEST_OUTCOME: ${{ steps.remote_test.outcome }}
+        run: |
+          if [[ "${KEEP_VM_ON_FAILURE}" == true && "${REMOTE_TEST_OUTCOME}" != success ]]; then
+            {
+              echo
+              echo "> [!WARNING]"
+              echo "> VM kept for debugging because the run failed and keep_vm_on_failure=true."
+              echo "> Delete \`${NEBIUS_VM_NAME}\` manually when finished."
+            } >>"${GITHUB_STEP_SUMMARY}"
+            exit 0
+          fi
+          if command -v nebius >/dev/null 2>&1; then
+            slurm-atf/cloud/nebius/delete-vm.sh
+          fi
+
+      - if: always()
+        name: Upload complete baseline evidence
+        uses: actions/upload-artifact@v7
+        with:
+          name: slurm-atf-baseline-${{ github.run_id }}-${{ github.run_attempt }}
+          path: atf-result/
+          if-no-files-found: error
+          retention-days: 30
+
+      - if: always() && steps.remote_test.outcome != 'success'
+        name: Fail after evidence collection and cleanup
+        run: |
+          echo "Remote Slurm ATF execution did not complete successfully" >&2
+          exit 1
+
+  publish:
+    name: Publish immutable vanilla baseline
+    needs: baseline
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    concurrency:
+      group: slurm-atf-baseline-release-${{ needs.baseline.outputs.release_version }}-${{ needs.baseline.outputs.baseline_key }}
+      cancel-in-progress: false
+    env:
+      BASELINE_KEY: ${{ needs.baseline.outputs.baseline_key }}
+      RELEASE_VERSION: ${{ needs.baseline.outputs.release_version }}
+      RELEASE_TAG: slurm-atf-baseline-${{ needs.baseline.outputs.release_version }}-${{ needs.baseline.outputs.baseline_key }}
+      ASSET_PREFIX: slurm-atf-baseline-${{ needs.baseline.outputs.release_version }}-${{ needs.baseline.outputs.baseline_key }}
+    steps:
+      - name: Download complete baseline evidence
+        uses: actions/download-artifact@v8
+        with:
+          name: slurm-atf-baseline-${{ github.run_id }}-${{ github.run_attempt }}
+          path: baseline-evidence
+
+      - name: Validate and package baseline evidence
+        env:
+          SOURCE_COMMIT: ${{ github.sha }}
+          SOURCE_RUN_ATTEMPT: ${{ github.run_attempt }}
+          SOURCE_RUN_ID: ${{ github.run_id }}
+          SOURCE_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          test -s baseline-evidence/junit.xml
+          test -s baseline-evidence/baseline-key.json
+          test -s baseline-evidence/release-manifest.json
+          test "$(<baseline-evidence/baseline-key)" = "${BASELINE_KEY}"
+          test "$(jq -er '.baseline_key' baseline-evidence/baseline-key.json)" = "${BASELINE_KEY}"
+          test "$(jq -er '.release.version' baseline-evidence/release-manifest.json)" = "${RELEASE_VERSION}"
+          test -z "$(find baseline-evidence -type l -print -quit)"
+
+          mkdir -p release-assets
+          archive="${ASSET_PREFIX}.tar.gz"
+          tar --format=posix --sort=name --mtime='UTC 1970-01-01' \
+            --owner=0 --group=0 --numeric-owner \
+            -C baseline-evidence -czf "release-assets/${archive}" .
+          archive_sha256="$(sha256sum "release-assets/${archive}" | awk '{print $1}')"
+          printf '%s  %s\n' "${archive_sha256}" "${archive}" \
+            >"release-assets/${archive}.sha256"
+
+          jq -n \
+            --arg baseline_key "${BASELINE_KEY}" \
+            --arg release_version "${RELEASE_VERSION}" \
+            --arg release_tag "${RELEASE_TAG}" \
+            --arg archive "${archive}" \
+            --arg archive_sha256 "${archive_sha256}" \
+            --arg source_commit "${SOURCE_COMMIT}" \
+            --arg source_run_id "${SOURCE_RUN_ID}" \
+            --arg source_run_attempt "${SOURCE_RUN_ATTEMPT}" \
+            --arg source_run_url "${SOURCE_RUN_URL}" \
+            '{
+              schema: 1,
+              baseline_key: $baseline_key,
+              release_version: $release_version,
+              release_tag: $release_tag,
+              archive: $archive,
+              archive_sha256: $archive_sha256,
+              source: {
+                commit: $source_commit,
+                run_id: $source_run_id,
+                run_attempt: $source_run_attempt,
+                run_url: $source_run_url
+              }
+            }' >"release-assets/${ASSET_PREFIX}.json"
+
+          cat >release-assets/release-notes.md <<EOF
+          Permanent vanilla Slurm ${RELEASE_VERSION} ATF baseline.
+
+          - Baseline key: \`${BASELINE_KEY}\`
+          - Source workflow: ${SOURCE_RUN_URL}
+          - Source commit: \`${SOURCE_COMMIT}\`
+          - Evidence archive SHA256: \`${archive_sha256}\`
+
+          This release is a comparison input, not a Slurm package release. It
+          must never be overwritten; a changed baseline identity gets a new tag.
+          EOF
+
+      - id: existing
+        name: Keep an existing baseline immutable
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if ! gh release view "${RELEASE_TAG}" >/dev/null 2>&1; then
+            echo "publish=true" >>"${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          assets="$(gh release view "${RELEASE_TAG}" --json assets --jq '.assets[].name')"
+          grep -Fxq "${ASSET_PREFIX}.tar.gz" <<<"${assets}"
+          grep -Fxq "${ASSET_PREFIX}.tar.gz.sha256" <<<"${assets}"
+          grep -Fxq "${ASSET_PREFIX}.json" <<<"${assets}"
+          echo "Baseline ${RELEASE_TAG} already exists and will not be changed."
+          echo "publish=false" >>"${GITHUB_OUTPUT}"
+
+      - if: steps.existing.outputs.publish == 'true'
+        name: Publish permanent baseline release
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
+        with:
+          tag_name: ${{ env.RELEASE_TAG }}
+          target_commitish: ${{ github.sha }}
+          name: Slurm ATF vanilla baseline ${{ env.RELEASE_VERSION }} / ${{ env.BASELINE_KEY }}
+          body_path: release-assets/release-notes.md
+          draft: false
+          prerelease: false
+          make_latest: false
+          overwrite_files: false
+          fail_on_unmatched_files: true
+          files: |
+            release-assets/${{ env.ASSET_PREFIX }}.tar.gz
+            release-assets/${{ env.ASSET_PREFIX }}.tar.gz.sha256
+            release-assets/${{ env.ASSET_PREFIX }}.json

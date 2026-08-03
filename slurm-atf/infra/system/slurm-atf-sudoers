@@ -1,0 +1,17 @@
+atf ALL=(ALL:ALL) NOPASSWD: ALL
+Defaults:atf !requiretty
+Defaults:slurm !requiretty
+Defaults rlimit_core=default
+
+# Power/reboot tests execute their ResumeProgram/SuspendProgram as SlurmUser.
+# Permit only lifecycle operations for the synthetic ATF slurmd instances.
+Cmnd_Alias SLURM_ATF_SLURMD = \
+	/usr/bin/pkill -F /run/slurm-atf/*, \
+	/opt/slurm-atf/install/sbin/slurmd -N node*, \
+	/opt/slurm-atf/install/sbin/slurmd -N node* -b
+slurm ALL=(root) NOPASSWD: SLURM_ATF_SLURMD
+
+# Expect tests that validate cross-user authorization run their commands as a
+# dedicated unprivileged account.  Do not use the persistent ATF runner here:
+# several test cleanups intentionally delete testsuite_user from accounting.
+slurm ALL=(atf-test) NOPASSWD: ALL

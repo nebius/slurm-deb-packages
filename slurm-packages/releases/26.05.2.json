@@ -1,0 +1,31 @@
+{
+  "schema": 1,
+  "release": {
+    "version": "26.05.2",
+    "tag": "slurm-26-05-2-1",
+    "tag_object": "ea3a44c53011af8f6adfefa9f37651b7f69c04da",
+    "commit": "78e308f8e37a0dab89a9518520e6b52afabe4a29",
+    "tarball_url": "https://download.schedmd.com/slurm/slurm-26.05.2.tar.bz2",
+    "tarball_sha256": "01151f233dde64d95cc4ca96931aea3d4a2cad372ed9ad86a8b9f6b674600c3b"
+  },
+  "tests": {
+    "repository": "https://github.com/SchedMD/slurm.git",
+    "master_commit": "a10f3b3e58e5e4c63fa09f40cfc308cfd2acefc0",
+    "snapshot_url": "https://github.com/SchedMD/slurm/archive/a10f3b3e58e5e4c63fa09f40cfc308cfd2acefc0.tar.gz",
+    "snapshot_sha256": "c3bfe08b9a1011f494536f49a4b5f7fdfc8ae2c50d9695813ffa3d90d5fcd70b",
+    "harness_series": "slurm-atf/harness/26.05.2/series"
+  },
+  "product": {
+    "baseline_series": "slurm-packages/patches/26.05.2/baseline/series"
+  },
+  "atf": {
+    "profile": "generic",
+    "layout_version": 1,
+    "pmix_tag": "v5.0.11",
+    "pmix_commit": "3795947f0fa625f406f1d085d1e70a8413b3febc",
+    "openmpi_tag": "v5.0.9",
+    "openmpi_commit": "b79100b3fbbf45b3c6ed82a6b67b6346f8cfdc41",
+    "mpich_version": "5.0.1",
+    "mpich_sha256": "8c1832a13ddacf071685069f5fadfd1f2877a29e1a628652892c65211b1f3327"
+  }
+}

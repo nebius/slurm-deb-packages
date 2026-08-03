@@ -1,0 +1,152 @@
+name: Build Slurm 26 packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      patchset:
+        description: Product patch series name (baseline is vanilla Slurm)
+        required: true
+        default: baseline
+        type: string
+
+env:
+  SLURM_PATCHSET: ${{ inputs.patchset || 'baseline' }}
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ inputs.patchset || 'baseline' }} for ${{ matrix.platform }} / ${{ matrix.distribution }} / ${{ matrix.slurm_version }}
+    permissions:
+      contents: read
+    runs-on: ${{ matrix.runner }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        slurm_version:
+          - 26.05.2
+        distribution:
+          - ubuntu24.04
+        platform:
+          - linux/amd64
+          - linux/arm64
+        include:
+          - platform: linux/amd64
+            runner: ubuntu-24.04
+            ld_library_path: /usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib:/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu
+            base_image: cr.eu-north1.nebius.cloud/ml-containers/neubuntu:noble-20260202145316
+          - platform: linux/arm64
+            runner: ubuntu-24.04-arm
+            ld_library_path: /usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib:/lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu
+            base_image: cr.eu-north1.nebius.cloud/ml-containers/neubuntu:noble-20260202145316
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
+
+      - name: Get short commit hash
+        run: echo "SHORT_SHA=$(git rev-parse --short=8 HEAD)" >> $GITHUB_ENV
+
+      - name: Validate product patchset name
+        run: |
+          [[ "${SLURM_PATCHSET}" =~ ^[a-zA-Z0-9][a-zA-Z0-9._-]*$ ]]
+          test -f \
+            "slurm-packages/patches/${{ matrix.slurm_version }}/${SLURM_PATCHSET}/series"
+
+      - id: manifest
+        name: Validate pinned release manifest
+        run: |
+          python3 slurm-atf/ci/manifest.py github-output \
+            "slurm-packages/releases/${{ matrix.slurm_version }}.json"
+
+      - name: Build docker image
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
+        with:
+          file: slurm-packages/Dockerfile.patched
+          push: false
+          tags: slurm_packages:${{ matrix.slurm_version }}-${{ env.SLURM_PATCHSET }}-${{ env.SHORT_SHA }}
+          platforms: ${{ matrix.platform }}
+          load: true
+          build-args: |
+            SLURM_VERSION=${{ matrix.slurm_version }}
+            SLURM_TARBALL_URL=${{ steps.manifest.outputs.slurm_tarball_url }}
+            SLURM_TARBALL_SHA256=${{ steps.manifest.outputs.slurm_tarball_sha256 }}
+            SLURM_PATCHSET=${{ env.SLURM_PATCHSET }}
+            LD_LIBRARY_PATH=${{ matrix.ld_library_path }}
+            BASE_IMAGE=${{ matrix.base_image }}
+
+      - name: Create slurm_packages_output directory
+        run: mkdir -p slurm_packages_output/debs
+
+      - name: Run Docker container and copy files
+        run: |
+          container_id=$(docker create slurm_packages:${{ matrix.slurm_version }}-${{ env.SLURM_PATCHSET }}-${{ env.SHORT_SHA }})
+          docker start $container_id
+          docker cp $container_id:/usr/src/debs/. ./slurm_packages_output/debs/
+          docker stop $container_id
+          docker rm $container_id
+
+      - name: Normalize platform for artifact names
+        run: echo "PLATFORM_SAFE=${{ matrix.platform }}" | sed 's/\//-/g' >> "$GITHUB_ENV"
+
+      - name: Upload DEB packages as artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: debs-${{ matrix.distribution }}-${{ matrix.slurm_version }}-${{ env.SLURM_PATCHSET }}-${{ env.PLATFORM_SAFE }}
+          path: |
+            slurm_packages_output/debs/*.deb
+            slurm_packages_output/debs/product-patches.sha256
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Cleanup
+        run: rm -rf slurm_packages_output
+
+  release:
+    name: Release ${{ inputs.patchset || 'baseline' }} / ${{ matrix.distribution }} / ${{ matrix.slurm_version }}
+    needs: [build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        slurm_version:
+          - 26.05.2
+        distribution:
+          - ubuntu24.04
+
+    concurrency:
+      group: release-slurm-packages-${{ matrix.distribution }}-${{ matrix.slurm_version }}-${{ inputs.patchset || 'baseline' }}
+      cancel-in-progress: false
+
+    steps:
+      - name: Download all DEB artifacts for this distro/version
+        uses: actions/download-artifact@v8
+        with:
+          path: artifacts
+          pattern: debs-${{ matrix.distribution }}-${{ matrix.slurm_version }}-${{ env.SLURM_PATCHSET }}-*
+          merge-multiple: true
+
+      - name: Show downloaded debs
+        run: |
+          find artifacts -type f -name "*.deb" -print
+
+      - name: Create GitHub Release and upload all DEBs
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: slurm-packages-${{ matrix.distribution }}-${{ matrix.slurm_version }}-${{ env.SLURM_PATCHSET }}
+          name: Slurm packages ${{ matrix.slurm_version }} (${{ env.SLURM_PATCHSET }}) for ${{ matrix.distribution }}
+          draft: false
+          prerelease: false
+          fail_on_unmatched_files: true
+          files: |
+            artifacts/**/*.deb

@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+jar_path="$(
+	/opt/slurm-atf/venv/bin/python3 -c \
+	'import importlib.resources; print(importlib.resources.files("openapi_generator_cli") / "openapi-generator.jar")'
+)"
+
+java_args=()
+if [[ -n "${JAVA_OPTS:-}" ]]; then
+	read -r -a java_args <<<"${JAVA_OPTS}"
+fi
+
+exec java "${java_args[@]}" -jar "${jar_path}" "$@"

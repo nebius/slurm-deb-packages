@@ -10,6 +10,32 @@ Slurm is a highly scalable cluster management and job scheduling system for Linu
 
 Additionally, binary files for running NCCL tests are built to verify and benchmark the performance of the NCCL library in various configurations.
 
+### Slurm package build tracks
+
+Slurm `25.05.6` and `25.11.5` keep the original native build path. The
+[`slurm_packages.yml`](.github/workflows/slurm_packages.yml) workflow downloads
+the official tarball directly, builds it with
+[`slurm-packages/Dockerfile`](slurm-packages/Dockerfile), and publishes packages
+under the original artifact and release names. It does not use manifests,
+product patches or ATF.
+
+Slurm `26.05.2` and later use the separate
+[`slurm_packages_26.yml`](.github/workflows/slurm_packages_26.yml) workflow and
+[`slurm-packages/Dockerfile.patched`](slurm-packages/Dockerfile.patched).
+Sources are pinned by JSON manifests in
+[`slurm-packages/releases`](slurm-packages/releases); package builds verify the
+official tarball checksum and apply an explicit product patch series. The
+`baseline` series is always empty and therefore builds vanilla Slurm.
+
+The Nebius-CLI-provisioned disposable-VM Python/Expect validation workflow and
+the future vanilla-versus-patched comparison model are documented in
+[`slurm-atf/README.md`](slurm-atf/README.md). Slurm release sources are the
+system under test, while one separately pinned master snapshot supplies tests
+only. Canonical vanilla results are stored separately from package releases as
+content-addressed `slurm-atf-baseline-*` GitHub Releases and are never
+overwritten. This validation path starts with Slurm `26.05.2`; it is not used
+for the legacy 25.x builds.
+
 ### Installing packages from the Nebius public repository
 
 1. **Add the public key and repository**
