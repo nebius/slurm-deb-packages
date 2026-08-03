@@ -1,10 +1,10 @@
-ARG CUDA_VERSION=13.0.2
+ARG CUDA_VERSION
 ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/ml-containers/cuda:${CUDA_VERSION}-ubuntu24.04-20260803104926
 
 FROM $BASE_IMAGE
 
 ARG ARCH=x64
-ARG CUDA_SAMPLES_TAG=v13.0
+ARG CUDA_SAMPLES_TAG
 ARG DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y \
