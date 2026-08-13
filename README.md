@@ -4,6 +4,16 @@ This repository automates the process of building Debian packages for [Slurm](ht
 
 Slurm is built using default options, with support for some additional libraries, such as [OpenPMIx (v5)](https://github.com/openpmix/openpmix).
 
+The `Build slurm packages` workflow builds the maintained upstream versions
+and the current Nebius release candidate from one build matrix. The Nebius
+source comes from the [Nebius Slurm fork](https://github.com/nebius/slurm) and
+currently uses the immutable `slurm-26-05-3-nebius-1-rc3` release.
+
+Every source uses distinct artifact names, Debian package versions, and GitHub
+release tags. The Nebius source release records Debian version
+`26.05.3-nebius-1~rc3`, so the future final `26.05.3-nebius-1` package will
+correctly sort as newer without the packaging workflow rewriting its metadata.
+
 ## Overview
 
 Slurm is a highly scalable cluster management and job scheduling system for Linux clusters. To facilitate its installation and integration into Debian-based systems, this repository provides automated scripts to build `.deb` packages for Slurm and some of its key dependencies, including OpenPMIx and NCCL.
