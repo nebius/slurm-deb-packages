@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   build:
-    name: Build for ${{ matrix.platform }} / ${{ matrix.distribution }} / ${{ matrix.slurm_version }}
+    name: Build ${{ matrix.source.name }} / ${{ matrix.distribution }} / ${{ matrix.platform }}
     permissions:
       contents: read
     runs-on: ${{ matrix.runner }}
@@ -16,9 +16,14 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        slurm_version:
-          - 25.05.6
-          - 25.11.5
+        source:
+          - name: 25.05.6
+            version: 25.05.6
+          - name: 25.11.5
+            version: 25.11.5
+          - name: 26.05.3-nebius-1-rc3
+            version: 26.05.3-nebius-1-rc3
+            source_url: https://github.com/nebius/slurm/releases/download/slurm-26-05-3-nebius-1-rc3/slurm-26.05.3-nebius-1-rc3.tar.gz
         distribution:
           - ubuntu24.04
         platform:
@@ -42,18 +47,19 @@ jobs:
         uses: docker/setup-buildx-action@bb05f3f5519dd87d3ba754cc423b652a5edd6d2c # v4.2.0
 
       - name: Get short commit hash
-        run: echo "SHORT_SHA=$(git rev-parse --short=8 HEAD)" >> $GITHUB_ENV
+        run: echo "SHORT_SHA=$(git rev-parse --short=8 HEAD)" >> "$GITHUB_ENV"
 
       - name: Build docker image
         uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           file: slurm-packages/Dockerfile
           push: false
-          tags: slurm_packages:${{ matrix.slurm_version }}-${{ env.SHORT_SHA }}
+          tags: slurm_packages:${{ matrix.source.name }}-${{ env.SHORT_SHA }}
           platforms: ${{ matrix.platform }}
           load: true
           build-args: |
-            SLURM_VERSION=${{ matrix.slurm_version }}
+            SLURM_VERSION=${{ matrix.source.version }}
+            SLURM_SOURCE_URL=${{ matrix.source.source_url }}
             LD_LIBRARY_PATH=${{ matrix.ld_library_path }}
             BASE_IMAGE=${{ matrix.base_image }}
 
@@ -62,11 +68,9 @@ jobs:
 
       - name: Run Docker container and copy files
         run: |
-          container_id=$(docker create slurm_packages:${{ matrix.slurm_version }}-${{ env.SHORT_SHA }})
-          docker start $container_id
-          docker cp $container_id:/usr/src/debs/. ./slurm_packages_output/debs/
-          docker stop $container_id
-          docker rm $container_id
+          container_id=$(docker create slurm_packages:${{ matrix.source.name }}-${{ env.SHORT_SHA }})
+          docker cp "$container_id:/usr/src/debs/." ./slurm_packages_output/debs/
+          docker rm "$container_id"
 
       - name: Normalize platform for artifact names
         run: echo "PLATFORM_SAFE=${{ matrix.platform }}" | sed 's/\//-/g' >> "$GITHUB_ENV"
@@ -74,7 +78,7 @@ jobs:
       - name: Upload DEB packages as artifact
         uses: actions/upload-artifact@v7
         with:
-          name: debs-${{ matrix.distribution }}-${{ matrix.slurm_version }}-${{ env.PLATFORM_SAFE }}
+          name: debs-${{ matrix.distribution }}-${{ matrix.source.name }}-${{ env.PLATFORM_SAFE }}
           path: slurm_packages_output/debs/*.deb
           if-no-files-found: error
           retention-days: 7
@@ -84,7 +88,7 @@ jobs:
 
 
   release:
-    name: Release ${{ matrix.distribution }} / ${{ matrix.slurm_version }}
+    name: Release ${{ matrix.source.name }} / ${{ matrix.distribution }}
     needs: [build]
     runs-on: ubuntu-24.04
     permissions:
@@ -93,37 +97,44 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        slurm_version:
-          - 25.05.6
-          - 25.11.5
+        source:
+          - name: 25.05.6
+            source_ref: SchedMD/slurm@slurm-25-05-6-1
+          - name: 25.11.5
+            source_ref: SchedMD/slurm@slurm-25-11-5-1
+          - name: 26.05.3-nebius-1-rc3
+            source_ref: nebius/slurm@slurm-26-05-3-nebius-1-rc3
         distribution:
           - ubuntu24.04
 
     concurrency:
-      group: release-slurm-packages-${{ matrix.distribution }}-${{ matrix.slurm_version }}
+      group: release-slurm-packages-${{ matrix.distribution }}-${{ matrix.source.name }}
       cancel-in-progress: false
 
     steps:
-      - name: Download all DEB artifacts for this distro/version
+      - name: Download all DEB artifacts for this source
         uses: actions/download-artifact@v8
         with:
           path: artifacts
-          pattern: debs-${{ matrix.distribution }}-${{ matrix.slurm_version }}-*
+          pattern: debs-${{ matrix.distribution }}-${{ matrix.source.name }}-*
           merge-multiple: true
 
-      - name: Show downloaded debs
-        run: |
-          find artifacts -type f -name "*.deb" -print
+      - name: Show downloaded packages
+        run: find artifacts -type f -name '*.deb' -print
 
-      - name: Create GitHub Release and upload all DEBs
+      - name: Create GitHub Release and upload DEBs
         uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: slurm-packages-${{ matrix.distribution }}-${{ matrix.slurm_version }}
-          name: Slurm packages ${{ matrix.slurm_version }} for ${{ matrix.distribution }}
+          tag_name: slurm-packages-${{ matrix.distribution }}-${{ matrix.source.name }}
+          name: Slurm packages ${{ matrix.source.name }} for ${{ matrix.distribution }}
+          body: |
+            Source: `${{ matrix.source.source_ref }}`
+
+            Packages are built for both amd64 and arm64.
           draft: false
-          prerelease: false
+          prerelease: ${{ contains(matrix.source.name, '-rc') }}
           fail_on_unmatched_files: true
           files: |
             artifacts/**/*.deb

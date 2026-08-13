@@ -4,6 +4,7 @@ FROM $BASE_IMAGE
 
 ARG SLURM_VERSION
 ARG LD_LIBRARY_PATH
+ARG SLURM_SOURCE_URL=
 
 ARG OPENMPI_VERSION=4.1.9a1
 ARG OPENMPI_SUBVERSION=1.20250722.92f9fca4eb.2507097
@@ -44,11 +45,16 @@ RUN apt install -y --update \
         libpmix-dev
 
 
-# Download Slurm
-RUN cd /usr/src && \
-    wget https://download.schedmd.com/slurm/slurm-${SLURM_VERSION}.tar.bz2 && \
-    tar -xvf slurm-${SLURM_VERSION}.tar.bz2 && \
-    rm -rf slurm-${SLURM_VERSION}.tar.bz2
+# Download Slurm. The default preserves the existing SchedMD build, while a
+# source build can provide a different release archive.
+RUN set -eux; \
+    source_url="${SLURM_SOURCE_URL:-https://download.schedmd.com/slurm/slurm-${SLURM_VERSION}.tar.bz2}"; \
+    archive=/tmp/slurm-source-archive; \
+    wget -O "${archive}" "${source_url}"; \
+    cd /usr/src; \
+    tar -xf "${archive}"; \
+    rm -f "${archive}"; \
+    test -d "slurm-${SLURM_VERSION}"
 
 # Install Openmpi
 RUN ARCH="$(dpkg --print-architecture)" && \
@@ -60,7 +66,7 @@ RUN ARCH="$(dpkg --print-architecture)" && \
     echo "deb ${MELLANOX_REPO_URL}/ubuntu24.04/${MLNX_ARCH} ./" > /etc/apt/sources.list.d/mellanox_doca.list && \
     wget -qO - https://linux.mellanox.com/public/repo/doca/GPG-KEY-Mellanox.pub | apt-key add - && \
     apt update && \
-    apt install openmpi=${OPENMPI_VERSION}-${OPENMPI_SUBVERSION}
+    apt install -y openmpi=${OPENMPI_VERSION}-${OPENMPI_SUBVERSION}
 
 ENV PATH=/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/bin:$PATH
 
