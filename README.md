@@ -14,6 +14,13 @@ release tags. The Nebius source release records Debian version
 `26.05.3-nebius-1~rc3`, so the future final `26.05.3-nebius-1` package will
 correctly sort as newer without the packaging workflow rewriting its metadata.
 
+The Pyxis workflow builds the SPANK plugin against every supported Slurm
+development package. Add each Nebius Slurm release to the Pyxis matrix as well,
+using its exact Debian version (for example, `26.05.3-nebius-1~rc3`). Other
+ancillary packages built in this repository do not compile or link against Slurm.
+Keep the same `~rcN` ordering in the Pyxis compatibility version so a final
+Nebius Pyxis package sorts newer than its release candidates.
+
 ## Overview
 
 Slurm is a highly scalable cluster management and job scheduling system for Linux clusters. To facilitate its installation and integration into Debian-based systems, this repository provides automated scripts to build `.deb` packages for Slurm and some of its key dependencies, including OpenPMIx and NCCL.

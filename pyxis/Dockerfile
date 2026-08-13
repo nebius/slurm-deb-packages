@@ -1,6 +1,8 @@
 FROM cr.eu-north1.nebius.cloud/ml-containers/neubuntu:noble-20260220113744
 
 ARG SLURM_VERSION
+ARG SLURM_APT_VERSION
+ARG SLURM_COMPAT_VERSION
 ARG ENROOT_VERSION
 ARG PYXIS_VERSION
 
@@ -25,7 +27,7 @@ RUN apt-get update && \
     setcap cap_sys_admin,cap_mknod+pe /usr/bin/enroot-aufs2ovlfs
 
 # Download and build pyxis deb
-RUN apt-get update && apt install -y slurm-smd=${SLURM_VERSION}-1 slurm-smd-dev=${SLURM_VERSION}-1 && \
+RUN apt-get update && apt install -y slurm-smd=${SLURM_APT_VERSION} slurm-smd-dev=${SLURM_APT_VERSION} && \
     apt-get clean && rm -rf /var/lib/apt/lists/* && \
     cd /usr/src && \
     wget https://github.com/nvidia/pyxis/archive/refs/tags/v"$PYXIS_VERSION".tar.gz && \
@@ -33,9 +35,9 @@ RUN apt-get update && apt install -y slurm-smd=${SLURM_VERSION}-1 slurm-smd-dev=
     rm v"$PYXIS_VERSION".tar.gz && \
     cd pyxis-"$PYXIS_VERSION" && \
     ARCH=$(uname -m) && \
-    export PYXIS_VER="${SLURM_VERSION}-${PYXIS_VERSION}" && \
+    export PYXIS_VER="${SLURM_COMPAT_VERSION}-${PYXIS_VERSION}" && \
     sed -i "s|dh_auto_install -- prefix=.*|dh_auto_install -- prefix=/usr libdir=/usr/lib/${ARCH}-linux-gnu datarootdir=/usr/share|" debian/rules && \
-    { echo "nvslurm-plugin-pyxis (${SLURM_VERSION}-${PYXIS_VERSION}-1) UNRELEASED; urgency=medium"; echo ""; echo "  * Release ${PYXIS_VERSION} for Slurm ${SLURM_VERSION}"; echo ""; echo " -- NEBIUS <amialiusik@nebius.com>  Tue, 24 Feb 2026 00:17:05 +0000"; echo ""; cat debian/changelog; } > debian/changelog.new && mv debian/changelog.new debian/changelog && \
+    { echo "nvslurm-plugin-pyxis (${SLURM_COMPAT_VERSION}-${PYXIS_VERSION}-1) UNRELEASED; urgency=medium"; echo ""; echo "  * Release ${PYXIS_VERSION} for Slurm ${SLURM_VERSION}"; echo ""; echo " -- NEBIUS <amialiusik@nebius.com>  Tue, 24 Feb 2026 00:17:05 +0000"; echo ""; cat debian/changelog; } > debian/changelog.new && mv debian/changelog.new debian/changelog && \
     make orig && \
     make deb
 
