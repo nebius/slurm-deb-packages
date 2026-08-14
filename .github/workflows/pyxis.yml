@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   build:
-    name: Build for ${{ matrix.platform }} / ${{ matrix.distribution }} / ${{ matrix.slurm_version }}
+    name: Build for ${{ matrix.platform }} / ${{ matrix.distribution }} / ${{ matrix.slurm.version }}
     permissions:
       contents: read
     runs-on: ${{ matrix.runner }}
@@ -16,9 +16,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        slurm_version:
-          - 25.05.6
-          - 25.11.5
+        slurm:
+          - version: 25.11.5
+            apt_version: 25.11.5-1
+          - version: 26.05.3-nebius-2
+            apt_version: 26.05.3-nebius-2
         enroot:
           - version: 4.1.2
         pyxis:
@@ -46,11 +48,12 @@ jobs:
         with:
           file: pyxis/Dockerfile
           push: false
-          tags: pyxis_builder:slurm_${{ matrix.slurm_version }}_enroot_${{ matrix.enroot.version }}_pyxis_${{ matrix.pyxis.version }}_${{ matrix.distribution }}
+          tags: pyxis_builder:slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}_pyxis_${{ matrix.pyxis.version }}_${{ matrix.distribution }}
           platforms: ${{ matrix.platform }}
           load: true
           build-args: |
-            SLURM_VERSION=${{ matrix.slurm_version }}
+            SLURM_VERSION=${{ matrix.slurm.version }}
+            SLURM_APT_VERSION=${{ matrix.slurm.apt_version }}
             ENROOT_VERSION=${{ matrix.enroot.version }}
             PYXIS_VERSION=${{ matrix.pyxis.version }}
 
@@ -59,7 +62,7 @@ jobs:
 
       - name: Run Docker container and copy files
         run: |
-          container_id=$(docker create pyxis_builder:slurm_${{ matrix.slurm_version }}_enroot_${{ matrix.enroot.version }}_pyxis_${{ matrix.pyxis.version }}_${{ matrix.distribution }})
+          container_id=$(docker create pyxis_builder:slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}_pyxis_${{ matrix.pyxis.version }}_${{ matrix.distribution }})
           docker start $container_id
           docker cp $container_id:/usr/src/debs/. ./pyxis_build_output/debs/
           docker stop $container_id
@@ -71,7 +74,7 @@ jobs:
       - name: Upload DEB packages as artifact
         uses: actions/upload-artifact@v7
         with:
-          name: debs-${{ matrix.distribution }}-pyxis_${{ matrix.pyxis.version }}-slurm_${{ matrix.slurm_version }}-enroot_${{ matrix.enroot.version }}-${{ env.PLATFORM_SAFE }}
+          name: debs-${{ matrix.distribution }}-pyxis_${{ matrix.pyxis.version }}-slurm_${{ matrix.slurm.version }}-enroot_${{ matrix.enroot.version }}-${{ env.PLATFORM_SAFE }}
           path: pyxis_build_output/debs/*.deb
           if-no-files-found: error
           retention-days: 7
@@ -81,7 +84,7 @@ jobs:
 
 
   release:
-    name: Release pyxis ${{ matrix.pyxis.version }} / slurm ${{ matrix.slurm_version }} / enroot ${{ matrix.enroot.version }} / ${{ matrix.distribution }}
+    name: Release pyxis ${{ matrix.pyxis.version }} / slurm ${{ matrix.slurm.version }} / enroot ${{ matrix.enroot.version }} / ${{ matrix.distribution }}
     needs: [build]
     runs-on: ubuntu-24.04
     permissions:
@@ -90,9 +93,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        slurm_version:
-          - 25.05.6
-          - 25.11.5
+        slurm:
+          - version: 25.11.5
+            apt_version: 25.11.5-1
+          - version: 26.05.3-nebius-2
+            apt_version: 26.05.3-nebius-2
         enroot:
           - version: 4.1.2
         pyxis:
@@ -101,7 +106,7 @@ jobs:
           - ubuntu24.04
 
     concurrency:
-      group: release-pyxis-${{ matrix.pyxis.version }}-slurm-${{ matrix.slurm_version }}-enroot-${{ matrix.enroot.version }}-${{ matrix.distribution }}
+      group: release-pyxis-${{ matrix.pyxis.version }}-slurm-${{ matrix.slurm.version }}-enroot-${{ matrix.enroot.version }}-${{ matrix.distribution }}
       cancel-in-progress: false
 
     steps:
@@ -109,7 +114,7 @@ jobs:
         uses: actions/download-artifact@v8
         with:
           path: artifacts
-          pattern: debs-${{ matrix.distribution }}-pyxis_${{ matrix.pyxis.version }}-slurm_${{ matrix.slurm_version }}-enroot_${{ matrix.enroot.version }}-*
+          pattern: debs-${{ matrix.distribution }}-pyxis_${{ matrix.pyxis.version }}-slurm_${{ matrix.slurm.version }}-enroot_${{ matrix.enroot.version }}-*
           merge-multiple: true
 
       - name: Show downloaded debs
@@ -121,9 +126,9 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: pyxis-${{ matrix.pyxis.version }}_slurm_${{ matrix.slurm_version }}_enroot_${{ matrix.enroot.version }}_${{ matrix.distribution }}
-          name: Pyxis ${{ matrix.pyxis.version }} for Slurm ${{ matrix.slurm_version }} and ${{ matrix.distribution }}
-          body: Pyxis ${{ matrix.pyxis.version }} for Slurm ${{ matrix.slurm_version }}, Enroot ${{ matrix.enroot.version }} and ${{ matrix.distribution }}
+          tag_name: pyxis-${{ matrix.pyxis.version }}_slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}_${{ matrix.distribution }}
+          name: Pyxis ${{ matrix.pyxis.version }} for Slurm ${{ matrix.slurm.version }} and ${{ matrix.distribution }}
+          body: Pyxis ${{ matrix.pyxis.version }} for Slurm ${{ matrix.slurm.version }}, Enroot ${{ matrix.enroot.version }} and ${{ matrix.distribution }}
           draft: false
           prerelease: false
           fail_on_unmatched_files: true
