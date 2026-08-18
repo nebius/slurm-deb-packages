@@ -1,6 +1,7 @@
 FROM cr.eu-north1.nebius.cloud/ml-containers/neubuntu:noble-20260220113744
 
 ARG SLURM_VERSION
+ARG SLURM_APT_VERSION
 ARG ENROOT_VERSION
 ARG PYXIS_VERSION
 
@@ -25,7 +26,7 @@ RUN apt-get update && \
     setcap cap_sys_admin,cap_mknod+pe /usr/bin/enroot-aufs2ovlfs
 
 # Download and build pyxis deb
-RUN apt-get update && apt install -y slurm-smd=${SLURM_VERSION}-1 slurm-smd-dev=${SLURM_VERSION}-1 && \
+RUN apt-get update && apt install -y slurm-smd=${SLURM_APT_VERSION} slurm-smd-dev=${SLURM_APT_VERSION} && \
     apt-get clean && rm -rf /var/lib/apt/lists/* && \
     cd /usr/src && \
     wget https://github.com/nvidia/pyxis/archive/refs/tags/v"$PYXIS_VERSION".tar.gz && \
