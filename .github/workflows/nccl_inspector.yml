@@ -18,7 +18,7 @@ jobs:
       matrix:
         arch: ['amd64', 'arm64']
         cuda_version: ['13.0.2']
-        nccl_version: ['2.31.2-1']
+        nccl_version: ['2.30.7-1', '2.31.2-1']
         distribution: [ 'ubuntu24.04' ]
 
         include:
@@ -97,7 +97,7 @@ jobs:
       fail-fast: false
       matrix:
         cuda_version: [ '13.0' ]
-        nccl_version: [ '2.31.2-1' ]
+        nccl_version: [ '2.30.7-1', '2.31.2-1' ]
         include:
           - distribution: 'ubuntu24.04'
           - nccl_repo_owner: 'NVIDIA'
@@ -142,7 +142,7 @@ jobs:
           name: NCCL Inspector v${{ matrix.nccl_version }}+cuda${{ matrix.cuda_version }}-${{ matrix.nccl_version_release }}_${{ matrix.distribution }}
           body: |
             [NCCL Inspector plugin](https://github.com/${{ matrix.nccl_repo_owner }}/nccl/tree/v${{ matrix.nccl_version }}/${{ matrix.nccl_path_to_inspector }})
-            
+
             | NCCL version | CUDA version | Distribution | Deb version |
             | :--- | :--- | :---: | ---: |
             | [`${{ matrix.nccl_version }}`](https://github.com/${{ matrix.nccl_repo_owner }}/nccl/tree/v${{ matrix.nccl_version }}) | `${{ matrix.cuda_version }}` | `${{ matrix.distribution }}` | `${{ matrix.nccl_version_release }}` |
