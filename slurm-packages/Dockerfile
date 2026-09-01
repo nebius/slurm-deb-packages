@@ -1,16 +1,10 @@
-ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/ml-containers/neubuntu:noble-20260202145316
+ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/ml-containers/training:noble-20260819102426
 
 FROM $BASE_IMAGE
 
 ARG SLURM_VERSION
 ARG LD_LIBRARY_PATH
 ARG SLURM_SOURCE_URL=
-
-ARG OPENMPI_VERSION=4.1.9a1
-ARG OPENMPI_SUBVERSION=1.20250722.92f9fca4eb.2507097
-ARG MELLANOX_REPO_URL=https://linux.mellanox.com/public/repo/doca/3.1.0
-
-ARG DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
 RUN apt install -y --update \
@@ -55,20 +49,6 @@ RUN set -eux; \
     tar -xf "${archive}"; \
     rm -f "${archive}"; \
     test -d "slurm-${SLURM_VERSION}"
-
-# Install Openmpi
-RUN ARCH="$(dpkg --print-architecture)" && \
-    case "$ARCH" in \
-      amd64) MLNX_ARCH=x86_64 ;; \
-      arm64) MLNX_ARCH=arm64 ;; \
-      *) echo "Unsupported architecture: $ARCH" && exit 1 ;; \
-    esac && \
-    echo "deb ${MELLANOX_REPO_URL}/ubuntu24.04/${MLNX_ARCH} ./" > /etc/apt/sources.list.d/mellanox_doca.list && \
-    wget -qO - https://linux.mellanox.com/public/repo/doca/GPG-KEY-Mellanox.pub | apt-key add - && \
-    apt update && \
-    apt install -y openmpi=${OPENMPI_VERSION}-${OPENMPI_SUBVERSION}
-
-ENV PATH=/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/bin:$PATH
 
 # Build deb packages for Slurm
 RUN cd /usr/src/slurm-${SLURM_VERSION} && \
