@@ -1,8 +1,8 @@
-ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/soperator/cuda:12.9.0-cudnn-devel-ubuntu24.04
+ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/ml-containers/cuda:13.0.3-ubuntu24.04-20260908082350
 
 FROM $BASE_IMAGE
 
-ARG DGRCOPY_VERSION=2.5
+ARG DGRCOPY_VERSION
 
 ARG DEBIAN_FRONTEND=noninteractive
 
