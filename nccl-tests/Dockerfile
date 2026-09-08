@@ -1,5 +1,5 @@
 ARG CUDA_VERSION
-FROM cr.eu-north1.nebius.cloud/ml-containers/training:${CUDA_VERSION}-ubuntu24.04-20260819102426
+FROM cr.eu-north1.nebius.cloud/ml-containers/training:${CUDA_VERSION}-ubuntu24.04-20260908123024
 
 ARG OPENMPI_VERSION=4.1.9a1
 ARG LD_LIBRARY_PATH=/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib:/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/usr/local/cuda/targets/x86_64-linux/lib

@@ -22,11 +22,10 @@ jobs:
         build:
           - cuda_version: 12.9.0
             build_args: []
-          - cuda_version: 13.0.2
+          - cuda_version: 13.0.3
             build_args: []
         nccl_tests_version:
-          - 2.17.9
-          - 2.17.8
+          - 2.20.0
         distribution:
           - ubuntu24.04
         include:
@@ -98,11 +97,10 @@ jobs:
       fail-fast: false
       matrix:
         nccl_tests_version:
-          - 2.17.9
-          - 2.17.8
+          - 2.20.0
         cuda_version:
           - "12.9.0"
-          - "13.0.2"
+          - "13.0.3"
         distribution:
           - ubuntu24.04
 
