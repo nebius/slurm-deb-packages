@@ -1,0 +1,82 @@
+# One-shot slurm-wlm hop (Ubuntu distro 21.08.5 → 23.02.8) for jammy head nodes.
+# Legal slurmdbd path is 21.08 → 23.02 → 24.11 → 25.11.8; stay in slurm-wlm.
+# This is NOT the slurm-smd 25.x path (slurm_packages.yml / Dockerfile.ubuntu-2204).
+# No CUDA, OFED, or OpenMPI — HN slurmdbd/slurmctld hop only. Do not publish to
+# forge/slurm25; GitHub Release is the artifact.
+
+ARG BASE_IMAGE=ubuntu:22.04
+
+FROM $BASE_IMAGE
+
+ARG SLURM_VERSION=23.02.8
+ARG DEBIAN_FRONTEND=noninteractive
+# Ubuntu HPC packaging for 23.02.7; overlay onto the SchedMD 23.02.8 tarball.
+ARG DEBIAN_TARBALL_URL=https://ppa.launchpadcontent.net/ubuntu-hpc/slurm-wlm-23.02/ubuntu/pool/main/s/slurm-wlm/slurm-wlm_23.02.7-0ubuntu1~hpc0.debian.tar.xz
+
+ENV DEBFULLNAME="Together Computer"
+ENV DEBEMAIL="sre@together.ai"
+
+# Build tooling. quilt is required for debian source format 3.0; the Ubuntu HPC
+# series (9 patches) applies cleanly to the SchedMD 23.02.8 tarball via debuild.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        gnupg \
+        software-properties-common \
+        build-essential \
+        fakeroot \
+        devscripts \
+        debhelper \
+        dh-exec \
+        equivs \
+        wget \
+        curl \
+        quilt \
+        dpkg-dev \
+        xz-utils \
+        bzip2 \
+        pkg-config \
+        po-debconf \
+        python3 \
+        chrpath \
+        man2html \
+        bash-completion \
+    && rm -rf /var/lib/apt/lists/*
+
+# librocm-smi-dev is a Build-Depends of debian/control but is not in jammy
+# archives. Ubuntu HPC publishes rocm-smi-lib 5.2.3 in this same PPA. The PPA
+# is a build-container apt source only — not a customer apt source.
+RUN add-apt-repository -y ppa:ubuntu-hpc/slurm-wlm-23.02 \
+    && apt-get update \
+    && apt-get install -y --no-install-recommends \
+        librocm-smi-dev \
+        librocm-smi64-1 \
+    && rm -rf /var/lib/apt/lists/*
+
+# SchedMD 23.02.8 has no debian/ (that starts at 23.11 / slurm-smd). Overlay
+# Ubuntu HPC debian/ then bump the package version off 23.02.7.
+RUN cd /usr/src \
+    && wget -O slurm-${SLURM_VERSION}.tar.bz2 \
+        https://download.schedmd.com/slurm/slurm-${SLURM_VERSION}.tar.bz2 \
+    && tar -xjf slurm-${SLURM_VERSION}.tar.bz2 \
+    && rm -f slurm-${SLURM_VERSION}.tar.bz2 \
+    && wget -O slurm-wlm.debian.tar.xz "${DEBIAN_TARBALL_URL}" \
+    && tar -xJf slurm-wlm.debian.tar.xz -C slurm-${SLURM_VERSION} \
+    && rm -f slurm-wlm.debian.tar.xz \
+    && cd slurm-${SLURM_VERSION} \
+    && dch -b -v ${SLURM_VERSION}-1together1 -D jammy --force-distribution \
+        "Together hop: rebuild Ubuntu HPC slurm-wlm debian/ against SchedMD ${SLURM_VERSION} for the 21.08 to 23.02 slurmdbd upgrade. Not slurm-smd 25.x."
+
+# Binary-only build. debuild applies debian/patches (quilt 3.0). Existing
+# slurm-smd jobs ship *.deb only (skip noisy *-dbgsym*.ddeb).
+RUN cd /usr/src/slurm-${SLURM_VERSION} \
+    && mk-build-deps -i debian/control -t "apt-get -o Debug::pkgProblemResolver=yes --no-install-recommends -y" \
+    && debuild -b -uc -us
+
+################################################################
+# RESULT (slurm-wlm family, version 23.02.8-1together1)
+################################################################
+# /usr/src/slurm-wlm_*.deb, slurmctld_*.deb, slurmdbd_*.deb, slurm-client_*.deb, ...
+################################################################
+
+RUN mkdir /usr/src/debs && \
+    mv /usr/src/*.deb /usr/src/debs/
