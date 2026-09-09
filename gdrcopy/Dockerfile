@@ -1,4 +1,5 @@
-ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/ml-containers/cuda:13.0.3-ubuntu24.04-20260908082350
+ARG CUDA_VERSION
+ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/ml-containers/cuda:${CUDA_VERSION}-ubuntu24.04-20260908082350
 
 FROM $BASE_IMAGE
 
