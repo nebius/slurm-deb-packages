@@ -20,8 +20,6 @@ jobs:
           - linux/amd64
           - linux/arm64
         build:
-          - cuda_version: 12.9.0
-            build_args: []
           - cuda_version: 13.0.3
             build_args: []
         nccl_tests_version:
@@ -36,7 +34,7 @@ jobs:
           - platform: linux/arm64
             runner: ubuntu-24.04-arm
             arch: aarch64
-            ld_library_path: /usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib:/lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu:/usr/local/nvidia/lib:/usr/local/cuda-12.9/targets/sbsa-linux/lib/:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
+            ld_library_path: /usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib:/lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu:/usr/local/nvidia/lib:/usr/local/cuda/targets/sbsa-linux/lib/:/usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib
 
     steps:
       - name: Checkout repository
@@ -99,7 +97,6 @@ jobs:
         nccl_tests_version:
           - 2.20.0
         cuda_version:
-          - "12.9.0"
           - "13.0.3"
         distribution:
           - ubuntu24.04
