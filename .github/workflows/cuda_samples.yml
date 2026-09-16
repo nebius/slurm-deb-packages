@@ -31,9 +31,6 @@ jobs:
           - linux/amd64
           - linux/arm64
         build:
-          - cuda_version: 12.9.0
-            cuda_samples_tag: v12.9
-            build_args: []
           - cuda_version: 13.0.3
             cuda_samples_tag: v13.0
             build_args: []

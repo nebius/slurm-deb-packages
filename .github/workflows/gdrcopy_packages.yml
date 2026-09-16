@@ -19,7 +19,6 @@ jobs:
         dgrcopy:
           - version: 2.5.1
         cuda_version:
-          - 12.9.0
           - 13.0.3
         distribution:
           - ubuntu24.04
