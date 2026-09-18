@@ -19,9 +19,9 @@ jobs:
         source:
           - name: 25.11.5
             version: 25.11.5
-          - name: 26.05.3-nebius-2
-            version: 26.05.3-nebius-2
-            source_url: https://github.com/nebius/slurm/releases/download/slurm-26-05-3-nebius-2/slurm-26.05.3-nebius-2.tar.gz
+          - name: 26.05.4-nebius-1
+            version: 26.05.4-nebius-1
+            source_url: https://github.com/nebius/slurm/releases/download/slurm-26-05-4-nebius-1/slurm-26.05.4-nebius-1.tar.gz
         distribution:
           - ubuntu24.04
         platform:
@@ -98,8 +98,8 @@ jobs:
         source:
           - name: 25.11.5
             source_ref: SchedMD/slurm@slurm-25-11-5-1
-          - name: 26.05.3-nebius-2
-            source_ref: nebius/slurm@slurm-26-05-3-nebius-2
+          - name: 26.05.4-nebius-1
+            source_ref: nebius/slurm@slurm-26-05-4-nebius-1
         distribution:
           - ubuntu24.04
 
