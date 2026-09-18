@@ -5,17 +5,17 @@ This repository automates the process of building Debian packages for [Slurm](ht
 Slurm is built using default options, with support for some additional libraries, such as [OpenPMIx (v5)](https://github.com/openpmix/openpmix).
 
 The `Build slurm packages` workflow builds the maintained upstream `25.11.5`
-release and Nebius Slurm `26.05.3-nebius-2` from one build matrix. The Nebius
+release and Nebius Slurm `26.05.4-nebius-1` from one build matrix. The Nebius
 source comes from the [Nebius Slurm fork](https://github.com/nebius/slurm) and
-uses the immutable `slurm-26-05-3-nebius-2` release.
+uses the immutable `slurm-26-05-4-nebius-1` release.
 
 Every source uses distinct artifact names, Debian package versions, and GitHub
 release tags. The Nebius source archive already records Debian version
-`26.05.3-nebius-2`; the packaging workflow does not rewrite source metadata.
+`26.05.4-nebius-1`; the packaging workflow does not rewrite source metadata.
 
 The Pyxis workflow builds the SPANK plugin against every supported Slurm
 development package. Add each Nebius Slurm release to the Pyxis matrix as well,
-using its exact Debian version (currently `26.05.3-nebius-2`). Other ancillary
+using its exact Debian version (currently `26.05.4-nebius-1`). Other ancillary
 packages built in this repository do not compile or link against Slurm.
 Run the Slurm package workflow and wait for those packages to reach the public
 APT repository before starting Pyxis, which installs the exact listed version.

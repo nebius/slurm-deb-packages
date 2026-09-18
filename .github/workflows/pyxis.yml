@@ -19,8 +19,8 @@ jobs:
         slurm:
           - version: 25.11.5
             apt_version: 25.11.5-1
-          - version: 26.05.3-nebius-2
-            apt_version: 26.05.3-nebius-2
+          - version: 26.05.4-nebius-1
+            apt_version: 26.05.4-nebius-1
         enroot:
           - version: 4.1.2
         pyxis:
@@ -96,8 +96,8 @@ jobs:
         slurm:
           - version: 25.11.5
             apt_version: 25.11.5-1
-          - version: 26.05.3-nebius-2
-            apt_version: 26.05.3-nebius-2
+          - version: 26.05.4-nebius-1
+            apt_version: 26.05.4-nebius-1
         enroot:
           - version: 4.1.2
         pyxis:
