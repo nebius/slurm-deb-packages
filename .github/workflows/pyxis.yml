@@ -17,8 +17,8 @@ jobs:
       fail-fast: false
       matrix:
         slurm:
-          - version: 25.11.5
-            apt_version: 25.11.5-1
+          - version: 25.11.8
+            apt_version: 25.11.8-1
           - version: 26.05.4-nebius-1
             apt_version: 26.05.4-nebius-1
         enroot:
@@ -94,8 +94,8 @@ jobs:
       fail-fast: false
       matrix:
         slurm:
-          - version: 25.11.5
-            apt_version: 25.11.5-1
+          - version: 25.11.8
+            apt_version: 25.11.8-1
           - version: 26.05.4-nebius-1
             apt_version: 26.05.4-nebius-1
         enroot:
