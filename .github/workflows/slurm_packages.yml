@@ -17,8 +17,8 @@ jobs:
       fail-fast: false
       matrix:
         source:
-          - name: 25.11.5
-            version: 25.11.5
+          - name: 25.11.8
+            version: 25.11.8
           - name: 26.05.4-nebius-1
             version: 26.05.4-nebius-1
             source_url: https://github.com/nebius/slurm/releases/download/slurm-26-05-4-nebius-1/slurm-26.05.4-nebius-1.tar.gz
@@ -96,8 +96,8 @@ jobs:
       fail-fast: false
       matrix:
         source:
-          - name: 25.11.5
-            source_ref: SchedMD/slurm@slurm-25-11-5-1
+          - name: 25.11.8
+            source_ref: SchedMD/slurm@slurm-25-11-8-1
           - name: 26.05.4-nebius-1
             source_ref: nebius/slurm@slurm-26-05-4-nebius-1
         distribution:
