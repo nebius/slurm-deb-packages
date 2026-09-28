@@ -4,7 +4,7 @@ This repository automates the process of building Debian packages for [Slurm](ht
 
 Slurm is built using default options, with support for some additional libraries, such as [OpenPMIx (v5)](https://github.com/openpmix/openpmix).
 
-The `Build slurm packages` workflow builds the maintained upstream `25.11.5`
+The `Build slurm packages` workflow builds the maintained upstream `25.11.*`
 release and Nebius Slurm `26.05.4-nebius-1` from one build matrix. The Nebius
 source comes from the [Nebius Slurm fork](https://github.com/nebius/slurm) and
 uses the immutable `slurm-26-05-4-nebius-1` release.
