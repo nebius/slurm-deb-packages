@@ -22,7 +22,7 @@ jobs:
           - version: 26.05.4-nebius-1
             apt_version: 26.05.4-nebius-1
         enroot:
-          - version: 4.1.2
+          - version: 4.2.1
         pyxis:
           - version: 0.24.0
         distribution:
@@ -99,7 +99,7 @@ jobs:
           - version: 26.05.4-nebius-1
             apt_version: 26.05.4-nebius-1
         enroot:
-          - version: 4.1.2
+          - version: 4.2.1
         pyxis:
           - version: 0.24.0
         distribution:
