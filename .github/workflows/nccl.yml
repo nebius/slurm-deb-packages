@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   build:
-    name: Arch ${{ matrix.arch }} / nccl ${{ matrix.nccl_version }} / cuda ${{ matrix.cuda_version }}
+    name: Arch ${{ matrix.arch }} / nccl ${{ matrix.nccl_version }} / cuda ${{ matrix.cuda_version }} / ${{ matrix.distribution }}
     permissions:
       contents: read
     runs-on: ${{ matrix.runner }}
@@ -19,7 +19,7 @@ jobs:
         arch: [ 'amd64', 'arm64' ]
         cuda_version: [ '13.0.2' ]
         nccl_version: [ '2.30.7-1', '2.31.2-1' ]
-        distribution: [ 'ubuntu24.04' ]
+        distribution: [ 'ubuntu24.04', 'ubuntu26.04' ]
 
         include:
           - arch: amd64
@@ -47,6 +47,7 @@ jobs:
           build-args: |
             NCCL_VERSION=${{ matrix.nccl_version }}
             CUDA_VERSION=${{ matrix.cuda_version }}
+            DISTRIBUTION=${{ matrix.distribution }}
 
       - name: Create output directory
         run: mkdir -p output/debs
@@ -80,13 +81,9 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - nccl_version: 2.30.7-1
-            cuda_version: 13.0.2
-            distribution: ubuntu24.04
-          - nccl_version: 2.31.2-1
-            cuda_version: 13.0.2
-            distribution: ubuntu24.04
+        nccl_version: [ '2.30.7-1', '2.31.2-1' ]
+        cuda_version: [ '13.0.2' ]
+        distribution: [ 'ubuntu24.04', 'ubuntu26.04' ]
 
     concurrency:
       group: release-nccl-${{ matrix.nccl_version }}-cuda-${{ matrix.cuda_version }}-${{ matrix.distribution }}

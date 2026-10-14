@@ -1,4 +1,6 @@
-FROM cr.eu-north1.nebius.cloud/ml-containers/neubuntu:noble-20260220113744
+ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/ml-containers/neubuntu:noble-20260220113744
+
+FROM $BASE_IMAGE
 
 ARG SLURM_VERSION
 ARG SLURM_APT_VERSION

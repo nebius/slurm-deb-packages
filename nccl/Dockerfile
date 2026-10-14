@@ -1,5 +1,6 @@
 ARG CUDA_VERSION
-FROM cr.eu-north1.nebius.cloud/ml-containers/cuda:${CUDA_VERSION}-ubuntu24.04-20260227111638
+ARG DISTRIBUTION=ubuntu24.04
+FROM cr.eu-north1.nebius.cloud/ml-containers/cuda:${CUDA_VERSION}-${DISTRIBUTION}-20260227111638
 
 ARG DEBIAN_FRONTEND=noninteractive
 

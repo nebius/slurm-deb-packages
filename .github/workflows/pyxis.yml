@@ -27,10 +27,15 @@ jobs:
           - version: 0.24.0
         distribution:
           - ubuntu24.04
+          - ubuntu26.04
         platform:
           - linux/amd64
           - linux/arm64
         include:
+          - distribution: ubuntu24.04
+            base_image: cr.eu-north1.nebius.cloud/ml-containers/neubuntu:noble-20260220113744
+          - distribution: ubuntu26.04
+            base_image: cr.nebius.cloud/ml-containers/neubuntu:resolute-20261014134004
           - platform: linux/amd64
             runner: ubuntu-24.04
           - platform: linux/arm64
@@ -56,6 +61,7 @@ jobs:
             SLURM_APT_VERSION=${{ matrix.slurm.apt_version }}
             ENROOT_VERSION=${{ matrix.enroot.version }}
             PYXIS_VERSION=${{ matrix.pyxis.version }}
+            BASE_IMAGE=${{ matrix.base_image }}
 
       - name: Create pyxis_build_output directory
         run: mkdir -p pyxis_build_output/debs
@@ -104,6 +110,7 @@ jobs:
           - version: 0.24.0
         distribution:
           - ubuntu24.04
+          - ubuntu26.04
 
     concurrency:
       group: release-pyxis-${{ matrix.pyxis.version }}-slurm-${{ matrix.slurm.version }}-enroot-${{ matrix.enroot.version }}-${{ matrix.distribution }}
