@@ -24,6 +24,7 @@ jobs:
             source_url: https://github.com/nebius/slurm/releases/download/slurm-26-05-4-nebius-1/slurm-26.05.4-nebius-1.tar.gz
         distribution:
           - ubuntu24.04
+          - ubuntu26.04
         platform:
           - linux/amd64
           - linux/arm64
@@ -31,11 +32,13 @@ jobs:
           - platform: linux/amd64
             runner: ubuntu-24.04
             ld_library_path: /usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib:/lib/x86_64-linux-gnu:/usr/lib/x86_64-linux-gnu
-            base_image: cr.eu-north1.nebius.cloud/ml-containers/neubuntu:noble-20260202145316
           - platform: linux/arm64
             runner: ubuntu-24.04-arm
             ld_library_path: /usr/mpi/gcc/openmpi-${OPENMPI_VERSION}/lib:/lib/aarch64-linux-gnu:/usr/lib/aarch64-linux-gnu
+          - distribution: ubuntu24.04
             base_image: cr.eu-north1.nebius.cloud/ml-containers/neubuntu:noble-20260202145316
+          - distribution: ubuntu26.04
+            base_image: cr.nebius.cloud/ml-containers/neubuntu:resolute-20261014134004
 
     steps:
       - name: Checkout repository
@@ -52,7 +55,7 @@ jobs:
         with:
           file: slurm-packages/Dockerfile
           push: false
-          tags: slurm_packages:${{ matrix.source.name }}-${{ env.SHORT_SHA }}
+          tags: slurm_packages:${{ matrix.source.name }}-${{ matrix.distribution }}-${{ env.SHORT_SHA }}
           platforms: ${{ matrix.platform }}
           load: true
           build-args: |
@@ -66,7 +69,7 @@ jobs:
 
       - name: Run Docker container and copy files
         run: |
-          container_id=$(docker create slurm_packages:${{ matrix.source.name }}-${{ env.SHORT_SHA }})
+          container_id=$(docker create slurm_packages:${{ matrix.source.name }}-${{ matrix.distribution }}-${{ env.SHORT_SHA }})
           docker cp "$container_id:/usr/src/debs/." ./slurm_packages_output/debs/
           docker rm "$container_id"
 
@@ -102,6 +105,7 @@ jobs:
             source_ref: nebius/slurm@slurm-26-05-4-nebius-1
         distribution:
           - ubuntu24.04
+          - ubuntu26.04
 
     concurrency:
       group: release-slurm-packages-${{ matrix.distribution }}-${{ matrix.source.name }}

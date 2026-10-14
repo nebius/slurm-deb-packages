@@ -36,6 +36,7 @@ jobs:
             build_args: []
         distribution:
           - ubuntu24.04
+          - ubuntu26.04
         include:
           - platform: linux/amd64
             runner: ubuntu-24.04
@@ -64,6 +65,7 @@ jobs:
             ${{ matrix.build.build_args }}
             ARCH=${{ matrix.arch }}
             CUDA_VERSION=${{ matrix.build.cuda_version }}
+            DISTRIBUTION=${{ matrix.distribution }}
             CUDA_SAMPLES_TAG=${{ matrix.build.cuda_samples_tag }}
 
       - name: Create cuda_samples_build_output directory
