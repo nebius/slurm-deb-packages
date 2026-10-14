@@ -1,11 +1,18 @@
 ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/ml-containers/neubuntu:noble-20260220113744
 
+# Empty by default. Override with a `slurm_debs` build context holding
+# slurm-smd and slurm-smd-dev debs to install them instead of the apt ones.
+FROM scratch AS slurm_debs
+
 FROM $BASE_IMAGE
 
 ARG SLURM_VERSION
 ARG SLURM_APT_VERSION
 ARG ENROOT_VERSION
 ARG PYXIS_VERSION
+# When set, enroot debs are downloaded from this release URL instead of the
+# Nebius apt repo (which has no packages for some distributions)
+ARG ENROOT_DEBS_URL=
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -36,7 +43,16 @@ RUN apt-get update && \
 
 # Install enroot (required for pyxis)
 RUN apt-get update && \
-    apt install -y enroot=${ENROOT_VERSION}-1 enroot+caps=${ENROOT_VERSION}-1 && \
+    if [ -n "${ENROOT_DEBS_URL}" ]; then \
+      arch=$(dpkg --print-architecture) && \
+      wget -P /tmp/enroot-debs \
+        "${ENROOT_DEBS_URL}/enroot_${ENROOT_VERSION}-1_${arch}.deb" \
+        "${ENROOT_DEBS_URL}/enroot+caps_${ENROOT_VERSION}-1_${arch}.deb" && \
+      apt install -y /tmp/enroot-debs/*.deb && \
+      rm -rf /tmp/enroot-debs; \
+    else \
+      apt install -y enroot=${ENROOT_VERSION}-1 enroot+caps=${ENROOT_VERSION}-1; \
+    fi && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/* && \
     mkdir -m 777 /usr/share/enroot/enroot-data && \
@@ -45,7 +61,16 @@ RUN apt-get update && \
     setcap cap_sys_admin,cap_mknod+pe /usr/bin/enroot-aufs2ovlfs
 
 # Download and build pyxis deb
-RUN apt-get update && apt install -y slurm-smd=${SLURM_APT_VERSION} slurm-smd-dev=${SLURM_APT_VERSION} && \
+RUN --mount=type=bind,from=slurm_debs,target=/tmp/slurm-debs \
+    apt-get update && \
+    if [ -n "$(ls -A /tmp/slurm-debs)" ]; then \
+      arch=$(dpkg --print-architecture) && \
+      apt install -y \
+        "/tmp/slurm-debs/slurm-smd_${SLURM_APT_VERSION}_${arch}.deb" \
+        "/tmp/slurm-debs/slurm-smd-dev_${SLURM_APT_VERSION}_${arch}.deb"; \
+    else \
+      apt install -y slurm-smd=${SLURM_APT_VERSION} slurm-smd-dev=${SLURM_APT_VERSION}; \
+    fi && \
     apt-get clean && rm -rf /var/lib/apt/lists/* && \
     cd /usr/src && \
     wget https://github.com/nvidia/pyxis/archive/refs/tags/v"$PYXIS_VERSION".tar.gz && \

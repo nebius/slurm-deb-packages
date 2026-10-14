@@ -11,6 +11,7 @@ jobs:
     name: Build for ${{ matrix.platform }} / ${{ matrix.distribution }} / ${{ matrix.slurm.version }}
     permissions:
       contents: read
+      actions: read  # to download slurm debs from slurm_packages.yml artifacts
     runs-on: ${{ matrix.runner }}
 
     strategy:
@@ -36,6 +37,9 @@ jobs:
             base_image: cr.eu-north1.nebius.cloud/ml-containers/neubuntu:noble-20260220113744
           - distribution: ubuntu26.04
             base_image: cr.nebius.cloud/ml-containers/neubuntu:resolute-20261014134004
+            # Nebius apt repo has no resolute suite yet: take enroot from NVIDIA
+            # releases and slurm from this repo's slurm_packages.yml artifacts
+            debs_from_github: true
           - platform: linux/amd64
             runner: ubuntu-24.04
           - platform: linux/arm64
@@ -48,6 +52,25 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@594f3bf4285d9ea8dc53c9a0c9c4092420091003 # v4.4.0
 
+      - name: Normalize platform for artifact names
+        run: echo "PLATFORM_SAFE=${{ matrix.platform }}" | sed 's/\//-/g' >> "$GITHUB_ENV"
+
+      - name: Download slurm debs from the latest slurm_packages.yml artifact
+        if: matrix.debs_from_github
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ARTIFACT: debs-${{ matrix.distribution }}-${{ matrix.slurm.version }}-${{ env.PLATFORM_SAFE }}
+        run: |
+          run_id=$(gh api "repos/${GITHUB_REPOSITORY}/actions/artifacts?name=${ARTIFACT}&per_page=100" \
+            --jq '[.artifacts[] | select(.expired | not)] | sort_by(.created_at) | last | .workflow_run.id // empty')
+          if [ -z "${run_id}" ]; then
+            echo "::error::No unexpired artifact ${ARTIFACT}, run slurm_packages.yml first"
+            exit 1
+          fi
+          echo "Using ${ARTIFACT} from ${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${run_id}"
+          gh run download "${run_id}" -R "${GITHUB_REPOSITORY}" -n "${ARTIFACT}" -D slurm_debs
+          ls -l slurm_debs
+
       - name: Build docker image
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
@@ -56,12 +79,14 @@ jobs:
           tags: pyxis_builder:slurm_${{ matrix.slurm.version }}_enroot_${{ matrix.enroot.version }}_pyxis_${{ matrix.pyxis.version }}_${{ matrix.distribution }}
           platforms: ${{ matrix.platform }}
           load: true
+          build-contexts: ${{ matrix.debs_from_github && 'slurm_debs=slurm_debs' || '' }}
           build-args: |
             SLURM_VERSION=${{ matrix.slurm.version }}
             SLURM_APT_VERSION=${{ matrix.slurm.apt_version }}
             ENROOT_VERSION=${{ matrix.enroot.version }}
             PYXIS_VERSION=${{ matrix.pyxis.version }}
             BASE_IMAGE=${{ matrix.base_image }}
+            ENROOT_DEBS_URL=${{ matrix.debs_from_github && format('https://github.com/NVIDIA/enroot/releases/download/v{0}', matrix.enroot.version) || '' }}
 
       - name: Create pyxis_build_output directory
         run: mkdir -p pyxis_build_output/debs
@@ -73,9 +98,6 @@ jobs:
           docker cp $container_id:/usr/src/debs/. ./pyxis_build_output/debs/
           docker stop $container_id
           docker rm $container_id
-
-      - name: Normalize platform for artifact names
-        run: echo "PLATFORM_SAFE=${{ matrix.platform }}" | sed 's/\//-/g' >> "$GITHUB_ENV"
 
       - name: Upload DEB packages as artifact
         uses: actions/upload-artifact@v7
