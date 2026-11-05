@@ -1,0 +1,14 @@
+Section: multiverse/libs
+Priority: optional
+Package: libnvidia-ml1-fake
+Version: 9999.9999.9999
+Architecture: amd64
+Provides: libnvidia-ml1, libnvidia-ml.so.1
+Description: Fake NVML provider (GPU operator handles real libs)
+  Packages such as nvitop depend on libnvidia-ml1 (NVML). In containerized
+  environments the real libnvidia-ml.so.1 is not installed via packages, but
+  is provided by tools like `nvidia-container-toolkit` or the k8s GPU Operator.
+  .
+  This empty (mock) package provides libnvidia-ml1 and libnvidia-ml.so.1, so
+  that apt/dpkg can satisfy the dependency without pulling in real NVIDIA
+  driver packages.

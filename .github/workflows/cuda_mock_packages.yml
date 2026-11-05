@@ -61,7 +61,7 @@ jobs:
         with:
           tag_name: cuda_mocks
           name: Cuda mock packages
-          body: "Mock packages for nvidia-open and cuda-drivers"
+          body: "Mock packages for nvidia-open, cuda-drivers and libnvidia-ml1 (libnvidia-ml1-fake)"
           draft: false
           prerelease: false
           files: |

@@ -21,16 +21,19 @@ RUN ARCH=$(uname -m) && \
     esac && \
     echo "Using architecture: $ARCH_DEB" && \
     sed -i "s/^Architecture: .*/Architecture: ${ARCH_DEB}/" cuda-drivers && \
-    sed -i "s/^Architecture: .*/Architecture: ${ARCH_DEB}/" nvidia-open
+    sed -i "s/^Architecture: .*/Architecture: ${ARCH_DEB}/" nvidia-open && \
+    sed -i "s/^Architecture: .*/Architecture: ${ARCH_DEB}/" libnvidia-ml1-fake
 
 RUN equivs-build cuda-drivers
 RUN equivs-build nvidia-open
+RUN equivs-build libnvidia-ml1-fake
 
 ################################################################
 # RESULT
 ################################################################
 # ls -la /cuda-mock-packages/*.deb
-#-rw-r--r-- 1 root root 2004 Feb  3 13:25 cuda-drivers_9999.1.1_amd64.deb
-#-rw-r--r-- 1 root root 2000 Feb  3 13:24 nvidia-open_9999.1.1_amd64.deb
+#-rw-r--r-- 1 root root 2004 Feb  3 13:25 cuda-drivers_9999.9999.9999_amd64.deb
+#-rw-r--r-- 1 root root 2000 Feb  3 13:24 nvidia-open_9999.9999.9999_amd64.deb
+#-rw-r--r-- 1 root root 2100 Feb  3 13:24 libnvidia-ml1-fake_9999.9999.9999_amd64.deb
 ################################################################
 
