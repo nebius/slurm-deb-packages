@@ -61,9 +61,13 @@ jobs:
         with:
           tag_name: cuda_mocks
           name: Cuda mock packages
-          body: "Mock packages for nvidia-open and cuda-drivers"
+          body: "Mock packages for nvidia-open, cuda-drivers and libnvidia-ml1 (libnvidia-ml1-fake)"
           draft: false
           prerelease: false
+          # equivs builds aren't reproducible (new bytes on every run), and published versions can't
+          # be overwritten in Artifactory: keep existing assets, only add new ones.
+          # To change a mock, bump its Version.
+          overwrite_files: false
           files: |
             cuda_mock_build_output/cuda-mock-packages/*.deb
 
