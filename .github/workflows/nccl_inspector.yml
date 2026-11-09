@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   build:
-    name: Arch ${{ matrix.arch }} / cuda ${{ matrix.cuda_version }} / nccl ${{ matrix.nccl_version }}
+    name: Arch ${{ matrix.arch }} / cuda ${{ matrix.cuda_version }} / nccl ${{ matrix.nccl_version }} / ${{ matrix.distribution }}
     permissions:
       contents: read
     runs-on: ${{ matrix.runner }}
@@ -19,7 +19,7 @@ jobs:
         arch: ['amd64', 'arm64']
         cuda_version: ['13.0.2']
         nccl_version: ['2.30.7-1', '2.31.2-1']
-        distribution: [ 'ubuntu24.04' ]
+        distribution: [ 'ubuntu24.04', 'ubuntu26.04' ]
 
         include:
           - arch: 'amd64'
@@ -57,6 +57,7 @@ jobs:
           build-args: |
             ARCH=${{ matrix.arch }}
             CUDA_VERSION=${{ matrix.cuda_version }}
+            DISTRIBUTION=${{ matrix.distribution }}
             LIB_ARCH=${{ matrix.lib_arch }}
             NCCL_REPO_OWNER=${{ matrix.nccl_repo_owner }}
             NCCL_VERSION=${{ matrix.nccl_version }}
@@ -98,8 +99,8 @@ jobs:
       matrix:
         cuda_version: [ '13.0' ]
         nccl_version: [ '2.30.7-1', '2.31.2-1' ]
+        distribution: [ 'ubuntu24.04', 'ubuntu26.04' ]
         include:
-          - distribution: 'ubuntu24.04'
           - nccl_repo_owner: 'NVIDIA'
           - nccl_version_release: '1'
           - nccl_path_to_inspector: 'plugins/profiler/inspector'
