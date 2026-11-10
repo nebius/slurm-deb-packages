@@ -5,17 +5,34 @@ This repository automates the process of building Debian packages for [Slurm](ht
 Slurm is built using default options, with support for some additional libraries, such as [OpenPMIx (v5)](https://github.com/openpmix/openpmix).
 
 The `Build slurm packages` workflow builds the maintained upstream `25.11.*`
-release and Nebius Slurm `26.05.4-nebius-2` from one build matrix. The Nebius
+release and Nebius Slurm `26.05.4-nebius-3` from one build matrix. The Nebius
 source comes from the [Nebius Slurm fork](https://github.com/nebius/slurm) and
-uses the immutable `slurm-26-05-4-nebius-2` release.
+uses the immutable `slurm-26-05-4-nebius-3` release.
 
 Every source uses distinct artifact names and GitHub release tags. Debian package
 versions come from the source archive's `debian/changelog`; the packaging workflow
 does not rewrite source metadata.
 
+For the Nebius release, run `Build slurm packages` from the branch containing the
+updated matrices. The expected GitHub release is
+`slurm-packages-ubuntu24.04-26.05.4-nebius-3`. Check every downloaded DEB with:
+
+```bash
+dpkg-deb -f package.deb Package Version Architecture
+```
+
+All packages must report version `26.05.4-nebius-3`, with packages for `amd64`,
+`arm64`, and architecture-independent packages marked `all`.
+
+Publish this release through the [TeamCity SlurmPackages build](https://teamcity.nebius.dev/buildConfiguration/IdpSched_Soperator_PackageSync_SlurmPackages)
+with `env.SLURM_VERSION=26.05.4-nebius-3` and `env.UBUNTU_VERSION=24.04`.
+Wait for the exact version to appear in the public APT `noble/main` indexes for
+both architectures, including the architecture-independent packages. Published
+`nebius-1` packages must remain unchanged; do not overwrite them.
+
 The Pyxis workflow builds the SPANK plugin against every supported Slurm
 development package. Add each Nebius Slurm release to the Pyxis matrix as well,
-using its exact Debian version (currently `26.05.4-nebius-1`). Other ancillary
+using its exact Debian version (`26.05.4-nebius-3` for this release). Other ancillary
 packages built in this repository do not compile or link against Slurm.
 Run the Slurm package workflow and wait for those packages to reach the public
 APT repository before starting Pyxis, which installs the exact listed version.
