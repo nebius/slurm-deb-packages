@@ -16,7 +16,7 @@ version `26.05.4-nebius-3` directly.
 
 The Pyxis workflow builds the SPANK plugin against every supported Slurm
 development package. Add each Nebius Slurm release to the Pyxis matrix as well,
-using its exact Debian version (currently `26.05.4-nebius-1`). Other ancillary
+using its exact Debian version (currently `26.05.4-nebius-3`). Other ancillary
 packages built in this repository do not compile or link against Slurm.
 Run the Slurm package workflow and wait for those packages to reach the public
 APT repository before starting Pyxis, which installs the exact listed version.
