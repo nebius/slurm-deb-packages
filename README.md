@@ -4,19 +4,21 @@ This repository automates the process of building Debian packages for [Slurm](ht
 
 Slurm is built using default options, with support for some additional libraries, such as [OpenPMIx (v5)](https://github.com/openpmix/openpmix).
 
-The `Build slurm packages` workflow builds the maintained upstream `25.11.*`
-release and Nebius Slurm `26.05.4-nebius-3` from one build matrix. The Nebius
-source comes from the [Nebius Slurm fork](https://github.com/nebius/slurm) and
-uses the immutable `slurm-26-05-4-nebius-3` release.
+The `Build slurm packages` workflow builds the maintained upstream Slurm release
+and the current Nebius Slurm release from one build matrix. The exact versions
+are listed in the matrices of
+[`slurm_packages.yml`](.github/workflows/slurm_packages.yml). The Nebius source
+comes from the [Nebius Slurm fork](https://github.com/nebius/slurm) and uses an
+immutable release of the form `slurm-<major>-<minor>-<micro>-nebius-<N>`.
 
 Every source uses distinct artifact names and GitHub release tags. Debian package
 versions come from the source archive's `debian/changelog`; the packaging workflow
-does not rewrite source metadata. The Nebius source archive records Debian
-version `26.05.4-nebius-3` directly.
+does not rewrite source metadata. The Nebius source archive records its Debian
+version, such as `<major>.<minor>.<micro>-nebius-<N>`, directly.
 
 The Pyxis workflow builds the SPANK plugin against every supported Slurm
 development package. Add each Nebius Slurm release to the Pyxis matrix as well,
-using its exact Debian version (currently `26.05.4-nebius-3`). Other ancillary
+using its exact Debian version. Other ancillary
 packages built in this repository do not compile or link against Slurm.
 Run the Slurm package workflow and wait for those packages to reach the public
 APT repository before starting Pyxis, which installs the exact listed version.
@@ -37,7 +39,7 @@ Additionally, binary files for running NCCL tests are built to verify and benchm
    echo "deb [signed-by=/usr/share/keyrings/nebius.gpg.pub] https://dr.nebius.cloud/ stable main" | \
      sudo tee /etc/apt/sources.list.d/nebius.list > /dev/null
 2. **Install the package**
-  
+
     ```bash
     sudo apt update
     sudo apt install slurm-smd
