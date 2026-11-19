@@ -6,6 +6,23 @@ ARG SLURM_VERSION
 ARG LD_LIBRARY_PATH
 ARG SLURM_SOURCE_URL=
 
+# TODO: drop once the neubuntu resolute base image is fixed. Workarounds for it:
+# - apt 3 rejects the ASCII-armored Nebius key shipped as nebius.gpg.pub
+# - some packages (curl, libcurl4t64) are installed at versions missing from the
+#   image's apt snapshot, which breaks installing their -dev counterparts
+RUN . /etc/os-release && \
+    if [ "${VERSION_CODENAME}" = "resolute" ]; then \
+      cp /usr/share/keyrings/nebius.gpg.pub /usr/share/keyrings/nebius.asc && \
+      sed -i 's#/usr/share/keyrings/nebius.gpg.pub#/usr/share/keyrings/nebius.asc#' /etc/apt/sources.list.d/nebius.list && \
+      apt-get update && \
+      pkgs=$(apt list --installed 2>/dev/null | awk -F/ '/\[installed,local\]/ {print $1}' | \
+        while read -r p; do \
+          v=$(apt-cache madison "$p" | awk -F'|' 'NR==1 {gsub(/ /, "", $2); print $2}'); \
+          if [ -n "$v" ]; then echo "$p=$v"; fi; \
+        done) && \
+      if [ -n "$pkgs" ]; then apt-get install -y --allow-downgrades $pkgs; fi; \
+    fi
+
 # Install dependencies
 RUN apt install -y --update \
         git  \
