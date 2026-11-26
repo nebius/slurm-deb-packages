@@ -21,9 +21,9 @@ jobs:
           - linux/arm64
         include:
           - platform: linux/amd64
-            runner: ubuntu-24.04
+            runner: ubuntu-26.04
           - platform: linux/arm64
-            runner: ubuntu-24.04-arm
+            runner: ubuntu-26.04-arm
 
     steps:
       - name: Checkout repository
@@ -41,7 +41,7 @@ jobs:
           platforms: ${{ matrix.platform }}
           load: true
           build-args: |
-            BASE_IMAGE=ubuntu:jammy
+            BASE_IMAGE=cr.nebius.cloud/soperator-proxy-docker-io/library/ubuntu:resolute@sha256:d66b366dac61b575bee2aef07e9c26e8070096fbe84a3d4d3eb0da069b5d76db
 
       - name: Create cuda_mock_build_output directory
         run: mkdir -p cuda_mock_build_output
