@@ -11,6 +11,11 @@ are listed in the matrices of
 comes from the [Nebius Slurm fork](https://github.com/nebius/slurm) and uses an
 immutable release of the form `slurm-<major>-<minor>-<micro>-nebius-<N>`.
 
+Ubuntu 24.04 packages are built for both sources. Ubuntu 26.04 packages are built
+only for `26.05.6-nebius-1`, using
+`cr.nebius.cloud/ml-containers/training:13.5.0-ubuntu26.04-20261127105648`.
+Both distributions are built for amd64 and arm64.
+
 Every source uses distinct artifact names and GitHub release tags. Debian package
 versions come from the source archive's `debian/changelog`; the packaging workflow
 does not rewrite source metadata. The Nebius source archive records its Debian

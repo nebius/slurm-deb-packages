@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=cr.eu-north1.nebius.cloud/ml-containers/training:noble-20260819102426
+ARG BASE_IMAGE
 
 FROM $BASE_IMAGE
 
