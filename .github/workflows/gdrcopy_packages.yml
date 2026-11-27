@@ -8,7 +8,7 @@ permissions:
 
 jobs:
   build:
-    name: Build for ${{ matrix.platform }} / cuda ${{ matrix.cuda_version }}
+    name: Build for ${{ matrix.platform }} / cuda ${{ matrix.cuda_version }} / ${{ matrix.distribution }}
     permissions:
       contents: write  # for softprops/action-gh-release to create GitHub release
     runs-on: ${{ matrix.runner }}
@@ -22,6 +22,7 @@ jobs:
           - 13.0.3
         distribution:
           - ubuntu24.04
+          - ubuntu26.04
         platform:
           - linux/amd64
           - linux/arm64
@@ -49,6 +50,7 @@ jobs:
           build-args: |
             DGRCOPY_VERSION=${{ matrix.dgrcopy.version }}
             CUDA_VERSION=${{ matrix.cuda_version }}
+            DISTRIBUTION=${{ matrix.distribution }}
 
       - name: Create gdrcopy_build_output directory
         run: mkdir -p gdrcopy_build_output
